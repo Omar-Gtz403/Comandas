@@ -1,7 +1,7 @@
 const routes = [
   {
     path: "/",
-    component: () => import("layouts/CrearEventos.vue"),
+    component: () => import("layouts/MenuComida.vue"),
   },
 
   // Always leave this as last one,
