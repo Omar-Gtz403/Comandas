@@ -7,6 +7,10 @@ const routes = [
       { path: "registro", component: () => import("layouts/Registro.vue") },
       { path: "carrito", component: () => import("layouts/MenuComida.vue") }, // si hay otra página de carrito
       { path: "productos", component: () => import("layouts/MenuComida.vue") }, // si hay otra página de productos
+       {
+    path: "pagos",
+    component: () => import("src/layouts/PagosComandas.vue"),
+  },
     ],
   },
 
