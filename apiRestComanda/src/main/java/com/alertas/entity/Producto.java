@@ -10,33 +10,128 @@ import javax.persistence.Table;
 public class Producto {
 
     @Id
-    @Column(name = "codigo_barras", length = 50)
+    @Column(name = "codigo_barras")
     private String codigoBarras;
 
-    @Column(name = "nombre_producto", nullable = false, length = 45)
-    private String nombre;
+    @Column(name = "nombre_producto")
+    private String nombreProducto;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "Proveedor")
+    private String proveedor;
+
+    @Column(name = "descripcion")
     private String descripcion;
 
-    @Column(name = "precio_venta", nullable = false)
-    private Double precio;
+    @Column(name = "precio_compra")
+    private Double precioCompra;
+
+    @Column(name = "precio_venta")
+    private Double precioVenta;
+
+    @Column(name = "stock_min")
+    private Integer stockMin;
+
+    @Column(name = "stock_max")
+    private Integer stockMax;
+
+    @Column(name = "caducidad")
+    private String caducidad;
 
     @Column(name = "cantidad_existente")
-    private Double stock;
+    private Double cantidadExistente;
 
- 
+    @Column(name = "img")
+    private String img;
+
+	public String getCodigoBarras() {
+		return codigoBarras;
+	}
+
+	public void setCodigoBarras(String codigoBarras) {
+		this.codigoBarras = codigoBarras;
+	}
+
+	public String getNombreProducto() {
+		return nombreProducto;
+	}
+
+	public void setNombreProducto(String nombreProducto) {
+		this.nombreProducto = nombreProducto;
+	}
+
+	public String getProveedor() {
+		return proveedor;
+	}
+
+	public void setProveedor(String proveedor) {
+		this.proveedor = proveedor;
+	}
+
+	public String getDescripcion() {
+		return descripcion;
+	}
+
+	public void setDescripcion(String descripcion) {
+		this.descripcion = descripcion;
+	}
+
+	public Double getPrecioCompra() {
+		return precioCompra;
+	}
+
+	public void setPrecioCompra(Double precioCompra) {
+		this.precioCompra = precioCompra;
+	}
+
+	public Double getPrecioVenta() {
+		return precioVenta;
+	}
+
+	public void setPrecioVenta(Double precioVenta) {
+		this.precioVenta = precioVenta;
+	}
+
+	public Integer getStockMin() {
+		return stockMin;
+	}
+
+	public void setStockMin(Integer stockMin) {
+		this.stockMin = stockMin;
+	}
+
+	public Integer getStockMax() {
+		return stockMax;
+	}
+
+	public void setStockMax(Integer stockMax) {
+		this.stockMax = stockMax;
+	}
+
+	public String getCaducidad() {
+		return caducidad;
+	}
+
+	public void setCaducidad(String caducidad) {
+		this.caducidad = caducidad;
+	}
+
+	public Double getCantidadExistente() {
+		return cantidadExistente;
+	}
+
+	public void setCantidadExistente(Double cantidadExistente) {
+		this.cantidadExistente = cantidadExistente;
+	}
+
+	public String getImg() {
+		return img;
+	}
+
+	public void setImg(String img) {
+		this.img = img;
+	}
 
     // Getters y Setters
-    public String getCodigoBarras() { return codigoBarras; }
-    public void setCodigoBarras(String codigoBarras) { this.codigoBarras = codigoBarras; }
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-    public String getDescripcion() { return descripcion; }
-    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
-    public Double getPrecio() { return precio; }
-    public void setPrecio(Double precio) { this.precio = precio; }
-    public Double getStock() { return stock; }
-    public void setStock(Double stock) { this.stock = stock; }
-
+    
 }
+

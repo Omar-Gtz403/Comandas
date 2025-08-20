@@ -1,9 +1,8 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-
-    <q-header elevated class="bg-primary text-white">
+    <q-page-container class="bg-grey-1">
       <q-toolbar class="q-px-md q-py-sm">
-        <q-toolbar-title class="text-h6 text-center text-uppercase">
+        <q-toolbar-title class="text-h5 text-center text-uppercase">
           Menú
         </q-toolbar-title>
         <q-btn flat round size="lg" icon="shopping_cart" @click="abrirCarrito">
@@ -17,9 +16,6 @@
           />
         </q-btn>
       </q-toolbar>
-    </q-header>
-
-    <q-page-container>
       <div class="q-pa-md row q-col-gutter-md justify-center">
         <div
           v-for="(item, index) in menu"
@@ -32,28 +28,29 @@
                 item.img ||
                 'https://via.placeholder.com/300x200?text=Sin+Imagen'
               "
+              class="my-card-img"
             />
             <q-card-section>
-              <div class="row no-wrap items-center">
-                <div class="col text-subtitle1 ellipsis">{{ item.nombre }}</div>
+              <div class="text-h6 text-bold ellipsis">
+                {{ item.nombreProducto }}
               </div>
             </q-card-section>
             <q-card-section class="q-pt-none">
-              <div class="text-subtitle1">${{ item.precio.toFixed(2) }}</div>
-              <div class="text-caption text-grey">{{ item.descripcion }}</div>
+              <div class="text-subtitle1 text-primary">
+                $ {{ item.precioVenta.toFixed(2) }}
+              </div>
+              <div class="text-caption text-grey-7">{{ item.descripcion }}</div>
             </q-card-section>
             <q-separator />
-            <q-card-actions>
+            <q-card-actions align="center" class="q-pa-sm">
               <q-btn
                 flat
-                round
-                size="xl"
+                rounded
+                color="primary"
                 icon="add_shopping_cart"
                 @click="agregarAlCarrito(item)"
+                label="Agregar"
               />
-              <q-btn flat color="primary" @click="agregarAlCarrito(item)">
-                Agregar al carrito
-              </q-btn>
             </q-card-actions>
           </q-card>
         </div>
@@ -74,8 +71,8 @@
                 class="q-mb-sm row items-center justify-between"
               >
                 <div class="col-8">
-                  {{ item.nombre }} - ${{
-                    (item.precio * item.cantidad).toFixed(2)
+                  {{ item.nombreProducto }} - ${{
+                    (item.precioVenta * item.cantidad).toFixed(2)
                   }}
                 </div>
                 <div class="col-4 row items-center justify-end">
@@ -109,7 +106,7 @@
                 </div>
               </div>
               <q-separator class="q-my-sm" />
-              <div class="text-subtitle1 text-right">
+              <div class="text-subtitle1 text-right text-bold">
                 Total: ${{ totalCarrito.toFixed(2) }}
               </div>
             </div>
@@ -127,12 +124,6 @@
         </q-card>
       </q-dialog>
     </q-page-container>
-
-    <q-footer class="bg-grey-2 text-black q-py-md" elevated>
-      <q-toolbar class="justify-center">
-        <div class="text-center text-subtitle2">Menú</div>
-      </q-toolbar>
-    </q-footer>
   </q-layout>
 </template>
 
@@ -166,15 +157,17 @@ export default {
       } else {
         carrito.value.push({ ...item, cantidad: 1 });
       }
-      carrito.value = [...carrito.value];
+      carrito.value = [...carrito.value]; // forzar reactividad
     };
 
     const eliminarDelCarrito = (index) => {
       carrito.value.splice(index, 1);
+      carrito.value = [...carrito.value];
     };
 
     const incrementarCantidad = (index) => {
       carrito.value[index].cantidad += 1;
+      carrito.value = [...carrito.value];
     };
 
     const reducirCantidad = (index) => {
@@ -183,25 +176,47 @@ export default {
       } else {
         carrito.value.splice(index, 1);
       }
+      carrito.value = [...carrito.value];
     };
 
     const abrirCarrito = () => {
       dialogVisible.value = true;
     };
 
-    const confirmarPedido = () => {
-      $q.notify({
-        type: "positive",
-        message: "¡Pedido confirmado!",
-        position: "top",
-      });
-      carrito.value = [];
-      dialogVisible.value = false;
+    const confirmarPedido = async () => {
+      try {
+        const venta = {
+          total: totalCarrito.value,
+          detalles: carrito.value.map((item) => ({
+            codigoBarras: item.codigoBarras,
+            cantidad: item.cantidad,
+            precioUnitario: item.precioVenta,
+          })),
+        };
+
+        await axios.post("http://localhost:8082/api/ventas", venta);
+
+        $q.notify({
+          type: "positive",
+          message: "¡Pedido registrado exitosamente!",
+          position: "top",
+        });
+
+        carrito.value = [];
+        dialogVisible.value = false;
+      } catch (err) {
+        console.error("Error registrando venta:", err);
+        $q.notify({
+          type: "negative",
+          message: "Error al registrar el pedido.",
+          position: "top",
+        });
+      }
     };
 
     const totalCarrito = computed(() =>
       carrito.value.reduce(
-        (total, item) => total + item.precio * item.cantidad,
+        (total, item) => total + item.precioVenta * item.cantidad,
         0
       )
     );
@@ -232,9 +247,17 @@ export default {
 <style lang="sass" scoped>
 .my-card
   width: 100%
-  transition: transform 0.2s ease, box-shadow 0.2s ease
-  border-radius: 15px
+  border-radius: 12px
+  transition: transform 0.25s ease, box-shadow 0.25s ease
+  cursor: pointer
   &:hover
-    transform: scale(1.03)
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15)
+    transform: scale(1.05)
+    box-shadow: 0 12px 25px rgba(0,0,0,0.2)
+
+.my-card-img
+  border-top-left-radius: 12px
+  border-top-right-radius: 12px
+  transition: transform 0.3s ease
+  &:hover
+    transform: scale(1.1)
 </style>
