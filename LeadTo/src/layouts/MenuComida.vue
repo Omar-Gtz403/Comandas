@@ -143,15 +143,15 @@ export default {
     const router = useRouter();
     const carritoAnimado = ref(false);
 
-   /*  const getMenu = async () => {
+    const getMenu = async () => {
       try {
-        const res = await axios.get("http://localhost:8082/api/productos");
+        const res = await axios.get("http://192.168.100.220:8082/api/productos");
         menu.value = res.data;
       } catch (err) {
         console.error("Error cargando productos:", err);
       }
-    };*/
-   const getMenu = async () => {
+    };
+   /*const getMenu = async () => {
   menu.value = [
     {
       codigoBarras: "001",
@@ -182,7 +182,7 @@ export default {
       img: "https://cdn.pixabay.com/photo/2016/03/05/19/02/guacamole-1238252_1280.jpg"
     }
   ];
-};
+};*/
   const agregarAlCarrito = (item) => {
   const index = carrito.value.findIndex(
     (p) => p.codigoBarras === item.codigoBarras
@@ -246,7 +246,7 @@ export default {
 
 
         // Navega a PagosComandas y pasa el total como query param
-        router.push({ name: "pagos", query: { total: totalCarrito.value } });
+        router.push({ path: "/pagos", query: { total: totalCarrito.value } });
 
         carrito.value = [];
         dialogVisible.value = false;
