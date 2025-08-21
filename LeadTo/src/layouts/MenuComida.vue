@@ -131,6 +131,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useQuasar } from "quasar";
 import axios from "axios";
+import { useRouter } from "vue-router";
 
 export default {
   setup() {
@@ -138,16 +139,48 @@ export default {
     const menu = ref([]);
     const carrito = ref([]);
     const dialogVisible = ref(false);
+    const router = useRouter();
 
-    const getMenu = async () => {
+   /*  const getMenu = async () => {
       try {
         const res = await axios.get("http://localhost:8082/api/productos");
         menu.value = res.data;
       } catch (err) {
         console.error("Error cargando productos:", err);
       }
-    };
-
+    };*/
+   const getMenu = async () => {
+  menu.value = [
+    {
+      codigoBarras: "001",
+      nombreProducto: "Tacos al Pastor",
+      descripcion: "Tortilla de maíz, carne al pastor y piña.",
+      precioVenta: 55,
+      img: "https://www.entornoturistico.com/wp-content/uploads/2023/02/3-tacos-al-pastor-1280x720.jpeg"
+    },
+    {
+      codigoBarras: "002",
+      nombreProducto: "Pozole",
+      descripcion: "Sopa tradicional de maíz con carne y condimentos.",
+      precioVenta: 90,
+      img: "https://nutritionstudies.org/wp-content/uploads/2023/10/red-posole-with-mushroom.jpg"
+    },
+    {
+      codigoBarras: "003",
+      nombreProducto: "Enchiladas Verdes",
+      descripcion: "Tortillas rellenas bañadas en salsa verde.",
+      precioVenta: 75,
+      img: "https://i.ytimg.com/vi/E_qLMOf9lDs/sddefault.jpg"
+    },
+    {
+      codigoBarras: "004",
+      nombreProducto: "Guacamole",
+      descripcion: "Aguacate, jitomate, cebolla y limón.",
+      precioVenta: 60,
+      img: "https://cdn.pixabay.com/photo/2016/03/05/19/02/guacamole-1238252_1280.jpg"
+    }
+  ];
+};
     const agregarAlCarrito = (item) => {
       const index = carrito.value.findIndex(
         (p) => p.codigoBarras === item.codigoBarras
@@ -194,13 +227,17 @@ export default {
           })),
         };
 
-        await axios.post("http://localhost:8082/api/ventas", venta);
+        await axios.post("http://192.168.100.220:8082/api/ventas", venta);
+       // await axios.post("http://localhost:8082/api/ventas", venta);
 
         $q.notify({
           type: "positive",
-          message: "¡Pedido registrado exitosamente!",
+          message: "¡Pedido registrado exitosamente!, se despachará despues de su pago",
           position: "top",
         });
+
+        // Navega a PagosComandas y pasa el total como query param
+        router.push({ name: "PagosComandas", query: { total: totalCarrito.value } });
 
         carrito.value = [];
         dialogVisible.value = false;
