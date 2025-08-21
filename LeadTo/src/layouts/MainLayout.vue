@@ -3,8 +3,8 @@
     <!-- Header -->
     <q-header elevated class="bg-primary text-white">
       <q-toolbar>
-        <q-toolbar-title>Mi Dashboard</q-toolbar-title>
         <q-btn flat @click="drawer = !drawer" round dense icon="menu" />
+        <q-toolbar-title>Mi Dashboard</q-toolbar-title>
       </q-toolbar>
     </q-header>
 
@@ -20,8 +20,8 @@
           <q-avatar size="50px" class="q-mb-xs">
             <img src="https://cdn.quasar.dev/img/boy-avatar.png" />
           </q-avatar>
-          <div class="text-weight-bold">Cristian G.</div>
-          <div>@cristian</div>
+          <div class="text-weight-bold">.</div>
+          <div>@</div>
         </div>
       </q-img>
 
@@ -42,18 +42,11 @@
             <q-item-section>Registrar Producto</q-item-section>
           </q-item>
 
-          <q-item clickable v-ripple @click="irA('/carrito')">
+          <q-item clickable v-ripple @click="irA('/pagos')">
             <q-item-section avatar>
               <q-icon name="shopping_cart" />
             </q-item-section>
-            <q-item-section>Carrito</q-item-section>
-          </q-item>
-
-          <q-item clickable v-ripple @click="irA('/productos')">
-            <q-item-section avatar>
-              <q-icon name="inventory" />
-            </q-item-section>
-            <q-item-section>Productos</q-item-section>
+            <q-item-section>Pagos</q-item-section>
           </q-item>
         </q-list>
       </q-scroll-area>
