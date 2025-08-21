@@ -38,11 +38,13 @@
 <script>
 import { ref, onMounted } from "vue";
 import { useQuasar } from "quasar";
+import { useRoute } from "vue-router";
 
 export default {
   setup() {
     const $q = useQuasar();
-    const total = ref(0.01);
+    const route = useRoute();
+    const total = ref(Number(route.query.total) || 0);
 
     // Integración de PayPal
     onMounted(() => {

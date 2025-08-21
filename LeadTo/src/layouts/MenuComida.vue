@@ -132,6 +132,7 @@ import { ref, computed, onMounted } from "vue";
 import { useQuasar } from "quasar";
 import axios from "axios";
 import { useRouter } from "vue-router";
+import { Notify } from 'quasar'
 
 export default {
   setup() {
@@ -140,6 +141,7 @@ export default {
     const carrito = ref([]);
     const dialogVisible = ref(false);
     const router = useRouter();
+    const carritoAnimado = ref(false);
 
    /*  const getMenu = async () => {
       try {
@@ -181,17 +183,23 @@ export default {
     }
   ];
 };
-    const agregarAlCarrito = (item) => {
-      const index = carrito.value.findIndex(
-        (p) => p.codigoBarras === item.codigoBarras
-      );
-      if (index !== -1) {
-        carrito.value[index].cantidad += 1;
-      } else {
-        carrito.value.push({ ...item, cantidad: 1 });
-      }
-      carrito.value = [...carrito.value]; // forzar reactividad
-    };
+  const agregarAlCarrito = (item) => {
+  const index = carrito.value.findIndex(
+    (p) => p.codigoBarras === item.codigoBarras
+  );
+  if (index !== -1) {
+    carrito.value[index].cantidad += 1;
+  } else {
+    carrito.value.push({ ...item, cantidad: 1 });
+  }
+  carrito.value = [...carrito.value]; // forzar reactividad
+
+    Notify.create({
+      type: "positive",
+      message: `Agregado al carrito: ${item.nombreProducto}`,
+      position: "top",
+    });
+};
 
     const eliminarDelCarrito = (index) => {
       carrito.value.splice(index, 1);
@@ -227,17 +235,18 @@ export default {
           })),
         };
 
-        await axios.post("http://192.168.100.220:8082/api/ventas", venta);
+     //   await axios.post("http://192.168.100.220:8082/api/ventas", venta);
        // await axios.post("http://localhost:8082/api/ventas", venta);
 
-        $q.notify({
+       Notify.create({
           type: "positive",
-          message: "¡Pedido registrado exitosamente!, se despachará despues de su pago",
+          message: "Pedido registrado exitosamente, se despachará después de su pago",
           position: "top",
         });
 
+
         // Navega a PagosComandas y pasa el total como query param
-        router.push({ name: "PagosComandas", query: { total: totalCarrito.value } });
+        router.push({ name: "pagos", query: { total: totalCarrito.value } });
 
         carrito.value = [];
         dialogVisible.value = false;
