@@ -10,10 +10,16 @@
             </div>
             <div class="text-subtitle2 text-center q-mb-lg">
               Total a pagar:
+
               <span class="text-primary text-bold"
                 >${{ total.toFixed(2) }}</span
               >
             </div>
+            <div class="text-subtitle2 text-center q-mb-lg">
+              id venta:
+              <span class="text-primary text-bold">{{ idVenta }}</span>
+            </div>
+
             <div class="text-center q-mb-md">
               <div id="paypal-button-container"></div>
             </div>
@@ -34,12 +40,14 @@
 import { ref, onMounted } from "vue";
 import { useQuasar } from "quasar";
 import { useRoute } from "vue-router";
+import axios from "axios";
 
 export default {
   setup() {
     const $q = useQuasar();
     const route = useRoute();
     const total = ref(Number(route.query.total) || 0);
+    const idVenta = ref(route.query.idVenta || null); // ✅ ahora es ref
 
     // Integración de PayPal
     onMounted(() => {
@@ -57,30 +65,50 @@ export default {
     function renderPayPalButton() {
       window.paypal
         .Buttons({
-          createOrder: function (data, actions) {
+          createOrder: (data, actions) => {
             return actions.order.create({
               purchase_units: [
                 {
-                  amount: {
-                    value: total.value.toFixed(2),
-                  },
+                  amount: { value: total.value.toFixed(2) },
                 },
               ],
             });
           },
-          onApprove: function (data, actions) {
-            return actions.order.capture().then(function (details) {
+          onApprove: (data, actions) => {
+            return actions.order.capture().then(async (details) => {
               $q.notify({
                 type: "positive",
                 message: `Pago realizado por ${details.payer.name.given_name}`,
                 position: "top",
               });
+
+              // 🔹 Marcar la venta como pagada en backend
+              if (idVenta.value) {
+                try {
+                  await axios.put(
+                    `http://localhost:8082/api/ventas/${idVenta.value}/pagar`
+                  );
+                  $q.notify({
+                    type: "positive",
+                    message: "El pedido se actualizó como pagado ✅",
+                    position: "top",
+                  });
+                } catch (err) {
+                  console.error(err);
+                  $q.notify({
+                    type: "negative",
+                    message: "No se pudo actualizar el estado del pedido ❌",
+                    position: "top",
+                  });
+                }
+              }
             });
           },
-          onError: function (err) {
+          onError: (err) => {
+            console.error(err);
             $q.notify({
               type: "negative",
-              message: "Error en el pago con PayPal",
+              message: "Error en el pago con PayPal ❌",
               position: "top",
             });
           },
@@ -90,6 +118,7 @@ export default {
 
     return {
       total,
+      idVenta, // ✅ expuesto a la vista
     };
   },
 };

@@ -12,25 +12,28 @@ import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 @Entity
 @Table(name = "ventas")
 public class Venta {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    private LocalDateTime fecha;
+	private LocalDateTime fecha;
 
-    private Double total;
+	private Double total;
+	private Boolean pagado = false;
+	@OneToMany(mappedBy = "venta", cascade = CascadeType.ALL)
+	@JsonManagedReference
+	private List<VentaDetalle> detalles;
 
-    @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL)
-    private List<VentaDetalle> detalles;
-
-    @PrePersist
-    public void prePersist() {
-        fecha = LocalDateTime.now();
-    }
+	@PrePersist
+	public void prePersist() {
+		fecha = LocalDateTime.now();
+	}
 
 	public Long getId() {
 		return id;
@@ -64,6 +67,12 @@ public class Venta {
 		this.detalles = detalles;
 	}
 
+	public Boolean getPagado() {
+		return pagado;
+	}
 
-    
+	public void setPagado(Boolean pagado) {
+		this.pagado = pagado;
+	}
+
 }

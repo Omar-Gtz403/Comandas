@@ -132,7 +132,7 @@ import { ref, computed, onMounted } from "vue";
 import { useQuasar } from "quasar";
 import axios from "axios";
 import { useRouter } from "vue-router";
-import { Notify } from 'quasar'
+import { Notify } from "quasar";
 
 export default {
   setup() {
@@ -145,13 +145,15 @@ export default {
 
     const getMenu = async () => {
       try {
-        const res = await axios.get("http://192.168.100.220:8082/api/productos");
+        const res = await axios.get(
+          "http://192.168.100.220:8082/api/productos"
+        );
         menu.value = res.data;
       } catch (err) {
         console.error("Error cargando productos:", err);
       }
     };
-   /*const getMenu = async () => {
+    /*const getMenu = async () => {
   menu.value = [
     {
       codigoBarras: "001",
@@ -183,23 +185,23 @@ export default {
     }
   ];
 };*/
-  const agregarAlCarrito = (item) => {
-  const index = carrito.value.findIndex(
-    (p) => p.codigoBarras === item.codigoBarras
-  );
-  if (index !== -1) {
-    carrito.value[index].cantidad += 1;
-  } else {
-    carrito.value.push({ ...item, cantidad: 1 });
-  }
-  carrito.value = [...carrito.value]; // forzar reactividad
+    const agregarAlCarrito = (item) => {
+      const index = carrito.value.findIndex(
+        (p) => p.codigoBarras === item.codigoBarras
+      );
+      if (index !== -1) {
+        carrito.value[index].cantidad += 1;
+      } else {
+        carrito.value.push({ ...item, cantidad: 1 });
+      }
+      carrito.value = [...carrito.value]; // forzar reactividad
 
-    Notify.create({
-      type: "positive",
-      message: `Agregado al carrito: ${item.nombreProducto}`,
-      position: "top",
-    });
-};
+      Notify.create({
+        type: "positive",
+        message: `Agregado al carrito: ${item.nombreProducto}`,
+        position: "top",
+      });
+    };
 
     const eliminarDelCarrito = (index) => {
       carrito.value.splice(index, 1);
@@ -235,18 +237,21 @@ export default {
           })),
         };
 
-     //   await axios.post("http://192.168.100.220:8082/api/ventas", venta);
-       // await axios.post("http://localhost:8082/api/ventas", venta);
+        // 🔹 Guardar la venta en backend y obtener el id generado
+        const res = await axios.post("http://localhost:8082/api/ventas", venta);
 
-       Notify.create({
+        Notify.create({
           type: "positive",
-          message: "Pedido registrado exitosamente, se despachará después de su pago",
+          message:
+            "Pedido registrado exitosamente, se despachará después de su pago",
           position: "top",
         });
 
-
-        // Navega a PagosComandas y pasa el total como query param
-        router.push({ path: "/pagos", query: { total: totalCarrito.value } });
+        // 🔹 Pasar el idVenta y total a la pantalla de pagos
+        router.push({
+          path: "/pagos",
+          query: { total: totalCarrito.value, idVenta: res.data.id },
+        });
 
         carrito.value = [];
         dialogVisible.value = false;
