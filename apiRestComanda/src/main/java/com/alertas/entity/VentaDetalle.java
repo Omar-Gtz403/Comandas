@@ -3,30 +3,41 @@ package com.alertas.entity;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
+
 @Entity
 @Table(name = "venta_detalle")
 public class VentaDetalle {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @Column(name = "codigo_barras")
-    private String codigoBarras;
+	@Column(name = "codigo_barras")
+	private String codigoBarras;
 
-    @Column(name = "cantidad")
-    private Integer cantidad;
+	@Column(name = "cantidad")
+	private Integer cantidad;
 
-    @Column(name = "precio_unitario")
-    private Double precioUnitario;
+	@Column(name = "precio_unitario")
+	private Double precioUnitario;
 
-    @ManyToOne
-    @JoinColumn(name = "venta_id")
-    @JsonBackReference
-    private Venta venta;
+	@ManyToOne(fetch = FetchType.EAGER, optional = true)
+	@JoinColumn(name = "codigo_barras", referencedColumnName = "codigo_barras", insertable = false, updatable = false)
+	@NotFound(action = NotFoundAction.IGNORE)
+	@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+	private Producto producto;
+
+	@ManyToOne
+	@JoinColumn(name = "venta_id")
+	@JsonBackReference
+	private Venta venta;
 
 	public Long getId() {
 		return id;
@@ -68,8 +79,14 @@ public class VentaDetalle {
 		this.venta = venta;
 	}
 
-    // Getters y Setters...
-    
+	public Producto getProducto() {
+		return producto;
+	}
+
+	public void setProducto(Producto producto) {
+		this.producto = producto;
+	}
+
+	// Getters y Setters...
+
 }
-
-

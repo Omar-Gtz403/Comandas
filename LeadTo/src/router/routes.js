@@ -7,6 +7,7 @@ const routes = [
       { path: "registro", component: () => import("layouts/Registro.vue") },
       { path: "pagos", component: () => import("layouts/PagosComandas.vue") },
       { path: "pedidos", component: () => import("layouts/admin-ventas.vue") },
+      { path: "status", component: () => import("layouts/Estatuspedido.vue") },
     ],
   },
 

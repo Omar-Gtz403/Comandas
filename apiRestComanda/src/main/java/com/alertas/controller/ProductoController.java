@@ -7,31 +7,29 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
 @RestController
 @RequestMapping("/api/productos")
 @CrossOrigin(origins = "*")
 public class ProductoController {
 
-    private final ProductoService productoService;
-    private final ProductoRepository productoRepository;
+	private final ProductoService productoService;
+	private final ProductoRepository productoRepository;
 
-    // Inyectamos ambos en el constructor
-    public ProductoController(ProductoService productoService, ProductoRepository productoRepository) {
-        this.productoService = productoService;
-        this.productoRepository = productoRepository;
-    }
+	// Inyectamos ambos en el constructor
+	public ProductoController(ProductoService productoService, ProductoRepository productoRepository) {
+		this.productoService = productoService;
+		this.productoRepository = productoRepository;
+	}
 
-    @GetMapping
-    public List<Producto> listar() {
-    	 System.out.println("Se consultó la API /api/productos");
-        return productoService.listarTodos();
-        
-    }
+	@GetMapping
+	public List<Producto> listar() {
+		System.out.println("Se consultó la API /api/productos");
+		return productoService.listarTodos();
 
-    @PostMapping
-    public Producto crearProducto(@RequestBody Producto producto) {
-        return productoRepository.save(producto);
-    }
+	}
+
+	@PostMapping
+	public Producto crearProducto(@RequestBody Producto producto) {
+		return productoRepository.save(producto);
+	}
 }
-

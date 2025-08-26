@@ -1,6 +1,5 @@
 package com.alertas.repository;
 
-
 import com.alertas.entity.Venta;
 import org.springframework.data.jpa.repository.JpaRepository;
 

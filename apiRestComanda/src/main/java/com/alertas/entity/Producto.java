@@ -9,39 +9,39 @@ import javax.persistence.Table;
 @Table(name = "tbl_productos")
 public class Producto {
 
-    @Id
-    @Column(name = "codigo_barras")
-    private String codigoBarras;
+	@Id
+	@Column(name = "codigo_barras")
+	private String codigoBarras;
 
-    @Column(name = "nombre_producto")
-    private String nombreProducto;
+	@Column(name = "nombre_producto")
+	private String nombreProducto;
 
-    @Column(name = "Proveedor")
-    private String proveedor;
+	@Column(name = "Proveedor")
+	private String proveedor;
 
-    @Column(name = "descripcion")
-    private String descripcion;
+	@Column(name = "descripcion")
+	private String descripcion;
 
-    @Column(name = "precio_compra")
-    private Double precioCompra;
+	@Column(name = "precio_compra")
+	private Double precioCompra;
 
-    @Column(name = "precio_venta")
-    private Double precioVenta;
+	@Column(name = "precio_venta")
+	private Double precioVenta;
 
-    @Column(name = "stock_min")
-    private Integer stockMin;
+	@Column(name = "stock_min")
+	private Integer stockMin;
 
-    @Column(name = "stock_max")
-    private Integer stockMax;
+	@Column(name = "stock_max")
+	private Integer stockMax;
 
-    @Column(name = "caducidad")
-    private String caducidad;
+	@Column(name = "caducidad")
+	private String caducidad;
 
-    @Column(name = "cantidad_existente")
-    private Double cantidadExistente;
+	@Column(name = "cantidad_existente")
+	private Double cantidadExistente;
 
-    @Column(name = "img")
-    private String img;
+	@Column(name = "img")
+	private String img;
 
 	public String getCodigoBarras() {
 		return codigoBarras;
@@ -131,7 +131,6 @@ public class Producto {
 		this.img = img;
 	}
 
-    // Getters y Setters
-    
-}
+	// Getters y Setters
 
+}

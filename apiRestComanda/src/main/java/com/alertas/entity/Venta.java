@@ -25,7 +25,11 @@ public class Venta {
 	private LocalDateTime fecha;
 
 	private Double total;
+	
 	private Boolean pagado = false;
+	
+	private Integer status = 0;
+	
 	@OneToMany(mappedBy = "venta", cascade = CascadeType.ALL)
 	@JsonManagedReference
 	private List<VentaDetalle> detalles;
@@ -74,5 +78,14 @@ public class Venta {
 	public void setPagado(Boolean pagado) {
 		this.pagado = pagado;
 	}
+
+	public Integer getStatus() {
+		return status;
+	}
+
+	public void setStatus(Integer status) {
+		this.status = status;
+	}
+	
 
 }

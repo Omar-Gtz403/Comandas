@@ -44,15 +44,23 @@
 
           <q-item clickable v-ripple @click="irA('/pagos')">
             <q-item-section avatar>
-              <q-icon name="shopping_cart" />
+              <q-icon name="payment" />
             </q-item-section>
             <q-item-section>Pagos</q-item-section>
           </q-item>
+
           <q-item clickable v-ripple @click="irA('/pedidos')">
             <q-item-section avatar>
               <q-icon name="shopping_cart" />
             </q-item-section>
             <q-item-section>Pedidos</q-item-section>
+          </q-item>
+
+          <q-item clickable v-ripple @click="irA('/status')">
+            <q-item-section avatar>
+              <q-icon name="receipt_long" />
+            </q-item-section>
+            <q-item-section>Estatus De Mi Pedido</q-item-section>
           </q-item>
         </q-list>
       </q-scroll-area>
