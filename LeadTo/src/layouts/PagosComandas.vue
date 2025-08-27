@@ -10,10 +10,9 @@
             </div>
             <div class="text-subtitle2 text-center q-mb-lg">
               Total a pagar:
-
-              <span class="text-primary text-bold"
-                >${{ total.toFixed(2) }}</span
-              >
+              <span class="text-primary text-bold">
+                ${{ total.toFixed(2) }}
+              </span>
             </div>
             <div class="text-subtitle2 text-center q-mb-lg">
               id venta:
@@ -39,15 +38,17 @@
 <script>
 import { ref, onMounted } from "vue";
 import { useQuasar } from "quasar";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 
 export default {
   setup() {
     const $q = useQuasar();
     const route = useRoute();
+    const router = useRouter();
+
     const total = ref(Number(route.query.total) || 0);
-    const idVenta = ref(route.query.idVenta || null); // ✅ ahora es ref
+    const idVenta = ref(route.query.idVenta || null);
 
     // Integración de PayPal
     onMounted(() => {
@@ -82,13 +83,12 @@ export default {
                 position: "top",
               });
 
-              // 🔹 Marcar la venta como pagada en backend
+              // 🔹 Marcar la venta como pagada en backend (status = 1 -> Pago confirmado)
               if (idVenta.value) {
                 try {
-                  // Actualizar el status de la venta a "Pago confirmado" (1)
                   await axios.put(
                     `http://localhost:8082/api/ventas/${idVenta.value}/status`,
-                    { status: 1 }, // 👈 este es el campo que espera tu backend
+                    { status: 1 },
                     { headers: { "Content-Type": "application/json" } }
                   );
 
@@ -96,6 +96,12 @@ export default {
                     type: "positive",
                     message: "El pedido se actualizó como pagado ✅",
                     position: "top",
+                  });
+
+                  // 🔹 Redirigir automáticamente al status
+                  router.push({
+                    path: "/status",
+                    query: { id: idVenta.value },
                   });
                 } catch (err) {
                   console.error(err);
@@ -108,7 +114,6 @@ export default {
               }
             });
           },
-
           onError: (err) => {
             console.error(err);
             $q.notify({
@@ -123,7 +128,7 @@ export default {
 
     return {
       total,
-      idVenta, // ✅ expuesto a la vista
+      idVenta,
     };
   },
 };

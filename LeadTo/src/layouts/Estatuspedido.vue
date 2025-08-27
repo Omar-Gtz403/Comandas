@@ -34,24 +34,53 @@
           />
         </q-card-section>
 
-        <!-- Timeline solo si hay pedido -->
+        <!-- Timeline -->
         <q-card-section v-if="pedido">
           <q-timeline color="primary">
+            <!-- Etapas animadas (completadas) -->
+            <transition-group name="fade-slide" tag="div">
+              <q-timeline-entry
+                v-for="(etapa, index) in etapasMostradas"
+                :key="'anim-' + index"
+                :title="etapa.titulo"
+                :subtitle="etapa.subtitulo"
+                :icon="etapa.icono"
+                color="primary"
+              >
+                <div>{{ etapa.descripcion }}</div>
+              </q-timeline-entry>
+            </transition-group>
+
+            <!-- Etapas restantes (gris, sin animación) -->
             <q-timeline-entry
-              v-for="(etapa, index) in etapas"
-              :key="index"
+              v-for="(etapa, index) in etapasRestantes"
+              :key="'gris-' + index"
               :title="etapa.titulo"
               :subtitle="etapa.subtitulo"
               :icon="etapa.icono"
-              :color="pedido.status >= index ? 'primary' : 'grey'"
+              color="grey"
             >
               <div>{{ etapa.descripcion }}</div>
             </q-timeline-entry>
           </q-timeline>
         </q-card-section>
 
+        <!-- ✅ Botón de pago si está en "Esperando pago" -->
+        <q-card-section v-if="pedido && pedido.status === 0">
+          <q-btn
+            color="positive"
+            label="Pagar con PayPal"
+            class="full-width"
+            icon="payment"
+            :to="{
+              path: '/pagos',
+              query: { total: pedido.total, idVenta: pedido.id },
+            }"
+          />
+        </q-card-section>
+
         <!-- Mensaje si no existe pedido -->
-        <q-card-section v-else-if="pedidoId && !cargando">
+        <q-card-section v-else-if="pedidoId && !cargando && !pedido">
           <div class="text-negative text-center">Pedido no encontrado</div>
         </q-card-section>
       </q-card>
@@ -60,7 +89,7 @@
 </template>
 
 <script>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import axios from "axios";
 
 export default {
@@ -70,41 +99,46 @@ export default {
     const pedido = ref(null);
     const cargando = ref(false);
 
-    // Definimos las etapas que reflejan el status del pedido
     const etapas = [
       {
-        titulo: "Pago aceptado",
-        subtitulo: "Tu pago fue recibido con éxito",
-        descripcion: "Estamos confirmando tu pedido en el sistema.",
+        titulo: "Esperando pago",
+        subtitulo: "Aún no recibimos tu pago",
+        descripcion: "En cuanto se confirme podrás seguir el pedido",
+        icono: "hourglass_empty",
+      },
+      {
+        titulo: "Pago confirmado",
+        subtitulo: "Tu pago fue recibido",
+        descripcion: "Estamos validando tu pedido",
         icono: "payment",
       },
       {
-        titulo: "Pedido realizado",
-        subtitulo: "Confirmación en restaurante",
-        descripcion: "Tu pedido fue registrado correctamente.",
-        icono: "assignment_turned_in",
-      },
-      {
-        titulo: "En preparación",
-        subtitulo: "Los cocineros están trabajando",
-        descripcion: "Estamos preparando tu pedido.",
+        titulo: "Preparando",
+        subtitulo: "El restaurante está trabajando en tu pedido",
+        descripcion: "Cocinando con cuidado tu orden",
         icono: "restaurant",
       },
       {
         titulo: "Listo para recoger",
         subtitulo: "Puedes venir al mostrador",
-        descripcion: "Tu pedido está listo para ser recogido.",
+        descripcion: "Tu pedido está esperando por ti",
         icono: "shopping_bag",
       },
       {
         titulo: "Entregado",
         subtitulo: "Pedido completado",
-        descripcion: "Tu pedido fue entregado. ¡Buen provecho!",
+        descripcion: "¡Disfruta tu comida!",
         icono: "done_all",
       },
     ];
 
-    // Método para consultar al backend
+    const etapasMostradas = ref([]);
+
+    const etapasRestantes = computed(() => {
+      if (!pedido.value) return [];
+      return etapas.slice(pedido.value.status + 1);
+    });
+
     const consultarPedido = async () => {
       if (!pedidoId.value) return;
       cargando.value = true;
@@ -113,9 +147,18 @@ export default {
           `http://localhost:8082/api/ventas/${pedidoId.value}`
         );
         pedido.value = res.data;
+
+        // Animación secuencial solo para etapas completadas
+        etapasMostradas.value = [];
+        for (let i = 0; i <= pedido.value.status; i++) {
+          setTimeout(() => {
+            etapasMostradas.value.push(etapas[i]);
+          }, i * 400);
+        }
       } catch (error) {
         console.error("Error al consultar pedido:", error);
-        pedido.value = null; // si no lo encuentra
+        pedido.value = null;
+        etapasMostradas.value = [];
       } finally {
         cargando.value = false;
       }
@@ -124,7 +167,8 @@ export default {
     return {
       pedidoId,
       pedido,
-      etapas,
+      etapasMostradas,
+      etapasRestantes,
       consultarPedido,
       cargando,
     };
@@ -135,5 +179,27 @@ export default {
 <style scoped>
 .q-timeline__entry-title {
   font-weight: bold;
+}
+
+/* Animación solo para etapas azules */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.5s ease;
+}
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+.fade-slide-enter-to {
+  opacity: 1;
+  transform: translateX(0);
+}
+.fade-slide-leave-from {
+  opacity: 1;
+  transform: translateX(0);
+}
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
 }
 </style>

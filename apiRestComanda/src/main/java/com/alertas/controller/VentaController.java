@@ -33,9 +33,10 @@ public class VentaController {
 
 	// Actualizar el estatus del pedido
 	@PutMapping("/{id}/status")
-	public Venta actualizarStatus(@PathVariable Long id, @RequestBody Integer nuevoStatus) {
-	    return ventaService.actualizarStatus(id, nuevoStatus);
+	public Venta actualizarStatus(@PathVariable Long id, @RequestBody StatusDTO dto) {
+	    return ventaService.actualizarStatus(id, dto.getStatus());
 	}
+
 
 	// Marcar venta como pagada
 	@PutMapping("/{id}/pagar")
