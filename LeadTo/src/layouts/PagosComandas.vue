@@ -85,9 +85,13 @@ export default {
               // 🔹 Marcar la venta como pagada en backend
               if (idVenta.value) {
                 try {
+                  // Actualizar el status de la venta a "Pago confirmado" (1)
                   await axios.put(
-                    `http://localhost:8082/api/ventas/${idVenta.value}/pagar`
+                    `http://localhost:8082/api/ventas/${idVenta.value}/status`,
+                    { status: 1 }, // 👈 este es el campo que espera tu backend
+                    { headers: { "Content-Type": "application/json" } }
                   );
+
                   $q.notify({
                     type: "positive",
                     message: "El pedido se actualizó como pagado ✅",
@@ -104,6 +108,7 @@ export default {
               }
             });
           },
+
           onError: (err) => {
             console.error(err);
             $q.notify({
