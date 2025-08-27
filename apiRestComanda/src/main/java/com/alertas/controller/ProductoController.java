@@ -32,4 +32,29 @@ public class ProductoController {
 	public Producto crearProducto(@RequestBody Producto producto) {
 		return productoRepository.save(producto);
 	}
+	@PutMapping("/{codigoBarras}")
+	public Producto actualizarProducto(@PathVariable String codigoBarras, @RequestBody Producto producto) {
+	    return productoRepository.findById(codigoBarras).map(p -> {
+	        p.setNombreProducto(producto.getNombreProducto());
+	        p.setProveedor(producto.getProveedor());
+	        p.setDescripcion(producto.getDescripcion());
+	        p.setPrecioCompra(producto.getPrecioCompra());
+	        p.setPrecioVenta(producto.getPrecioVenta());
+	        p.setStockMin(producto.getStockMin());
+	        p.setStockMax(producto.getStockMax());
+	        p.setCaducidad(producto.getCaducidad());
+	        p.setCantidadExistente(producto.getCantidadExistente());
+	        p.setImg(producto.getImg());
+	        return productoRepository.save(p);
+	    }).orElseThrow(() -> new RuntimeException("Producto no encontrado con código: " + codigoBarras));
+	}
+
+	@DeleteMapping("/{codigoBarras}")
+	public void eliminarProducto(@PathVariable String codigoBarras) {
+	    if (!productoRepository.existsById(codigoBarras)) {
+	        throw new RuntimeException("Producto no encontrado con código: " + codigoBarras);
+	    }
+	    productoRepository.deleteById(codigoBarras);
+	}
+
 }

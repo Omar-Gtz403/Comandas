@@ -48,6 +48,12 @@
             </q-item-section>
             <q-item-section>Pagos</q-item-section>
           </q-item>
+          <q-item clickable v-ripple @click="irA('/productos')">
+            <q-item-section avatar>
+              <q-icon name="inventory_2" />
+            </q-item-section>
+            <q-item-section>Lista de Productos</q-item-section>
+          </q-item>
 
           <q-item clickable v-ripple @click="irA('/pedidos')">
             <q-item-section avatar>
