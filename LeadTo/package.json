@@ -19,8 +19,10 @@
     "axios": "^0.21.4",
     "core-js": "^3.6.5",
     "pinia": "^2.0.11",
+    "qrcode.vue": "^3.6.0",
     "quasar": "^2.18.1",
     "vue": "^3.0.0",
+    "vue-qrcode-reader": "^5.7.3",
     "vue-router": "^4.0.0"
   },
   "devDependencies": {

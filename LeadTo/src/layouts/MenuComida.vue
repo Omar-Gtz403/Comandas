@@ -145,9 +145,7 @@ export default {
 
     const getMenu = async () => {
       try {
-        const res = await axios.get(
-          "http://192.168.100.220:8082/api/productos"
-        );
+        const res = await axios.get("http://localhost:8082/api/productos");
         menu.value = res.data;
       } catch (err) {
         console.error("Error cargando productos:", err);

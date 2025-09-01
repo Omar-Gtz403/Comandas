@@ -12,6 +12,7 @@
         flat
         bordered
         separator="cell"
+        :rows-per-page-options="[50]"
       >
         <!-- Productos -->
         <template v-slot:body-cell-productos="props">
@@ -62,13 +63,14 @@
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, getCurrentInstance } from "vue";
 import axios from "axios";
 
 export default {
   name: "VentasAdmin",
   setup() {
     const ventas = ref([]);
+    const { proxy } = getCurrentInstance(); // para usar proxy.$q.notify
 
     const estatusOptions = [
       { label: "Esperando pago", value: 0 },
@@ -115,11 +117,33 @@ export default {
     const getVentas = async () => {
       try {
         const res = await axios.get("http://localhost:8082/api/ventas");
-        ventas.value = res.data.map((venta) => ({
+        const nuevasVentas = res.data.map((venta) => ({
           ...venta,
           detalles: venta.detalles || [],
           status: Number(venta.status),
         }));
+
+        // 🔔 Detectar nuevo pedido
+        if (ventas.value.length && nuevasVentas.length > ventas.value.length) {
+          proxy.$q.notify({
+            type: "positive",
+            message: "¡Nuevo pedido recibido!",
+            color: "green",
+            position: "top-right",
+            timeout: 3000,
+            icon: "shopping_cart",
+          });
+
+          // Opcional: reproducir sonido
+          const audio = new Audio("/alerta.mp3"); // coloca alerta.mp3 en carpeta /public
+          audio.play().catch(() => {
+            console.warn(
+              "El navegador bloqueó la reproducción automática del audio"
+            );
+          });
+        }
+
+        ventas.value = nuevasVentas;
       } catch (error) {
         console.error("Error al obtener ventas:", error);
       }
@@ -137,7 +161,10 @@ export default {
       }
     };
 
-    onMounted(getVentas);
+    onMounted(() => {
+      getVentas();
+      setInterval(getVentas, 5000); // refresca cada 5 segundos
+    });
 
     return {
       ventas,

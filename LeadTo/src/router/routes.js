@@ -8,10 +8,12 @@ const routes = [
       { path: "pagos", component: () => import("layouts/PagosComandas.vue") },
       { path: "pedidos", component: () => import("layouts/admin-ventas.vue") },
       { path: "status", component: () => import("layouts/Estatuspedido.vue") },
+      { path: "ticket", component: () => import("layouts/Ticket.vue") },
       {
         path: "productos",
         component: () => import("layouts/ListaProductos.vue"),
       },
+      { path: "scan", component: () => import("layouts/ScanQR.vue") },
     ],
   },
 

@@ -83,9 +83,9 @@ export default {
                 position: "top",
               });
 
-              // 🔹 Marcar la venta como pagada en backend (status = 1 -> Pago confirmado)
               if (idVenta.value) {
                 try {
+                  // 1️⃣ Actualizar status en backend
                   await axios.put(
                     `http://localhost:8082/api/ventas/${idVenta.value}/status`,
                     { status: 1 },
@@ -98,9 +98,9 @@ export default {
                     position: "top",
                   });
 
-                  // 🔹 Redirigir automáticamente al status
+                  // 2️⃣ Redirigir al ticket con QR
                   router.push({
-                    path: "/status",
+                    path: "/ticket",
                     query: { id: idVenta.value },
                   });
                 } catch (err) {
@@ -114,6 +114,7 @@ export default {
               }
             });
           },
+
           onError: (err) => {
             console.error(err);
             $q.notify({
