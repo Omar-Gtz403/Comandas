@@ -9,6 +9,7 @@
 // https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js
 
 const ESLintPlugin = require("eslint-webpack-plugin");
+const fs = require('fs');
 
 const { configure } = require("quasar/wrappers");
 
@@ -81,13 +82,17 @@ module.exports = configure(function (ctx) {
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js#Property%3A-devServer
-    devServer: {
-      server: {
-        type: "http",
-      },
-      port: 8081,
-      open: true, // opens browser window automatically
+   devServer: {
+  server: {
+    type: "https",
+    options: {
+      key: fs.readFileSync("/Users/jerrybemo/Documents/GitHub/ComandasV1/LeadTo/certs/localhost.key"),
+      cert: fs.readFileSync("/Users/jerrybemo/Documents/GitHub/ComandasV1/LeadTo/certs/localhost.crt"),
     },
+  },
+  port: 8081,
+  open: true,
+},
 
     // https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js#Property%3A-framework
     framework: {

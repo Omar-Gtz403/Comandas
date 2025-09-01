@@ -145,7 +145,7 @@ export default {
 
     const getMenu = async () => {
       try {
-        const res = await axios.get("http://localhost:8082/api/productos");
+        const res = await axios.get("http://192.168.100.220:8082/api/productos");
         menu.value = res.data;
       } catch (err) {
         console.error("Error cargando productos:", err);
@@ -236,7 +236,7 @@ export default {
         };
 
         // 🔹 Guardar la venta en backend y obtener el id generado
-        const res = await axios.post("http://localhost:8082/api/ventas", venta);
+        const res = await axios.post("http://192.168.100.220:8082/api/ventas", venta);
 
         Notify.create({
           type: "positive",
