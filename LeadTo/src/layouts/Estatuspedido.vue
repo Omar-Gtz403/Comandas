@@ -65,7 +65,7 @@
           </q-timeline>
         </q-card-section>
 
-        <!-- ✅ Botón de pago si está en "Esperando pago" -->
+        <!-- Botón de pago si está en "Esperando pago" -->
         <q-card-section v-if="pedido && pedido.status === 0">
           <q-btn
             color="positive"
@@ -89,11 +89,14 @@
 </template>
 
 <script>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { api } from "src/boot/axios";
+
 export default {
   name: "EstatusPedido",
   setup() {
+    const route = useRoute();
     const pedidoId = ref("");
     const pedido = ref(null);
     const cargando = ref(false);
@@ -132,7 +135,6 @@ export default {
     ];
 
     const etapasMostradas = ref([]);
-
     const etapasRestantes = computed(() => {
       if (!pedido.value) return [];
       return etapas.slice(pedido.value.status + 1);
@@ -160,6 +162,15 @@ export default {
         cargando.value = false;
       }
     };
+
+    // ✅ Detectar query y consultar automáticamente al montar
+    onMounted(() => {
+      const idQuery = route.query.id;
+      if (idQuery) {
+        pedidoId.value = idQuery;
+        consultarPedido();
+      }
+    });
 
     return {
       pedidoId,
