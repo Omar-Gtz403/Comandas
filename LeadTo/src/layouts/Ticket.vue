@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import { useRoute } from "vue-router";
 import QrcodeVue from "qrcode.vue";
 
@@ -37,10 +37,8 @@ export default {
     const route = useRoute();
     const idVenta = ref(route.query.id || null);
 
-    // 🔹 Valor del QR (puede ser un link a tu status.vue)
-    const qrValue = ref(
-      `${window.location.origin}/#/status?id=${idVenta.value}`
-    );
+    // ✅ El QR solo contiene el ID
+    const qrValue = ref(idVenta.value);
 
     const descargarQR = () => {
       const canvas = document.querySelector("canvas");

@@ -40,6 +40,7 @@ import { ref, onMounted } from "vue";
 import { useQuasar } from "quasar";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
+import { api } from "src/boot/axios";
 
 export default {
   setup() {
@@ -86,8 +87,8 @@ export default {
               if (idVenta.value) {
                 try {
                   // 1️⃣ Actualizar status en backend
-                  await axios.put(
-                    `http://localhost:8082/api/ventas/${idVenta.value}/status`,
+                  await api.put(
+                    `/ventas/${idVenta.value}/status`,
                     { status: 1 },
                     { headers: { "Content-Type": "application/json" } }
                   );

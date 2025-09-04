@@ -135,7 +135,7 @@
 
 <script>
 import { ref, onMounted } from "vue";
-import axios from "axios";
+import { api } from "src/boot/axios";
 import { useQuasar } from "quasar";
 
 export default {
@@ -183,7 +183,7 @@ export default {
     ];
 
     const cargarProductos = async () => {
-      const res = await axios.get("http://localhost:8082/api/productos");
+      const res = await api.get("/productos");
       productos.value = res.data;
     };
 
@@ -211,8 +211,8 @@ export default {
           cantidadExistente: nuevoStock,
         };
 
-        await axios.put(
-          `http://localhost:8082/api/productos/${productoEditar.value.codigoBarras}`,
+        await api.put(
+          `/productos/${productoEditar.value.codigoBarras}`,
           dataActualizar
         );
         $q.notify({ type: "positive", message: "Producto actualizado!" });
@@ -230,9 +230,7 @@ export default {
 
     const eliminarProducto = async () => {
       try {
-        await axios.delete(
-          `http://localhost:8082/api/productos/${productoEliminar.value.codigoBarras}`
-        );
+        await api.delete(`/productos/${productoEliminar.value.codigoBarras}`);
         $q.notify({ type: "positive", message: "Producto eliminado!" });
         dialogEliminar.value = false;
         cargarProductos();

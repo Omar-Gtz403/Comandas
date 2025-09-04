@@ -2,22 +2,22 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated class="bg-primary text-white">
       <q-toolbar>
-        <q-toolbar-title>
-          Carrito de Ventas
-        </q-toolbar-title>
+        <q-toolbar-title> Carrito de Ventas </q-toolbar-title>
       </q-toolbar>
     </q-header>
 
     <q-page-container>
       <div class="q-pa-md">
-        <q-card class="q-pa-lg shadow-2" style="max-width: 600px; margin: auto;">
+        <q-card class="q-pa-lg shadow-2" style="max-width: 600px; margin: auto">
           <q-card-section>
             <div class="text-h6 q-mb-md">Productos en el carrito</div>
             <q-list bordered>
               <q-item v-for="(item, idx) in carrito" :key="item.id">
                 <q-item-section>
                   <div class="text-subtitle1">{{ item.nombre }}</div>
-                  <div class="text-caption">Precio: ${{ item.precio.toFixed(2) }}</div>
+                  <div class="text-caption">
+                    Precio: ${{ item.precio.toFixed(2) }}
+                  </div>
                 </q-item-section>
                 <q-item-section side>
                   <q-input
@@ -64,7 +64,6 @@
 <script>
 import { ref, computed } from "vue";
 import { useQuasar } from "quasar";
-
 export default {
   setup() {
     const $q = useQuasar();

@@ -130,7 +130,7 @@
 <script>
 import { ref, computed, onMounted } from "vue";
 import { useQuasar } from "quasar";
-import axios from "axios";
+import { api } from "src/boot/axios";
 import { useRouter } from "vue-router";
 import { Notify } from "quasar";
 
@@ -145,7 +145,7 @@ export default {
 
     const getMenu = async () => {
       try {
-        const res = await axios.get("http://192.168.100.220:8082/api/productos");
+        const res = await api.get("/productos");
         menu.value = res.data;
       } catch (err) {
         console.error("Error cargando productos:", err);
@@ -236,8 +236,8 @@ export default {
         };
 
         // 🔹 Guardar la venta en backend y obtener el id generado
-        const res = await axios.post("http://192.168.100.220:8082/api/ventas", venta);
 
+        const res = await api.post("/ventas", venta);
         Notify.create({
           type: "positive",
           message:

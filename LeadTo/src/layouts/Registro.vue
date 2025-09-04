@@ -217,7 +217,7 @@
 import { ref } from "vue";
 import { useQuasar } from "quasar";
 import axios from "axios";
-
+import { api } from "src/boot/axios";
 export default {
   name: "RegistrarProducto",
   setup() {
@@ -252,7 +252,7 @@ export default {
 
     const registrarProducto = async () => {
       try {
-        await axios.post("http://localhost:8082/api/productos", producto.value);
+        await api.post("/productos", producto.value);
         $q.notify({
           type: "positive",
           message: "Producto registrado con éxito!",

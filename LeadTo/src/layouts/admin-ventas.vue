@@ -64,8 +64,7 @@
 
 <script>
 import { ref, onMounted, getCurrentInstance } from "vue";
-import axios from "axios";
-
+import { api } from "src/boot/axios";
 export default {
   name: "VentasAdmin",
   setup() {
@@ -116,7 +115,7 @@ export default {
 
     const getVentas = async () => {
       try {
-        const res = await axios.get("http://localhost:8082/api/ventas");
+        const res = await api.get("/ventas");
         const nuevasVentas = res.data.map((venta) => ({
           ...venta,
           detalles: venta.detalles || [],
@@ -151,8 +150,8 @@ export default {
 
     const actualizarStatus = async (id, nuevoStatus) => {
       try {
-        await axios.put(
-          `http://localhost:8082/api/ventas/${id}/status`,
+        await api.put(
+          `/ventas/${id}/status`,
           { status: nuevoStatus },
           { headers: { "Content-Type": "application/json" } }
         );

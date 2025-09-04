@@ -1,26 +1,19 @@
 import { boot } from "quasar/wrappers";
 import axios from "axios";
 
-// Be careful when using SSR for cross-request state pollution
-// due to creating a Singleton instance here;
-// If any client changes this (global) instance, it might be a
-// good idea to move this instance creation inside of the
-// "export default () => {}" function below (which runs individually
-// for each client)
+// Detecta si estás en desarrollo o producción
+const BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? "http://TU_IP_O_DOMINIO:8082" // Cambia TU_IP_O_DOMINIO por la IP de tu servidor
+    : "https://192.168.1.69:8443"; // Localhost para desarrollo
+
 const api = axios.create({
-  baseURL: "http://localhost:8082/api/categorias",
+  baseURL: `${BASE_URL}/api`, // Solo pones /api al final
 });
 
 export default boot(({ app }) => {
-  // for use inside Vue files (Options API) through this.$axios and this.$api
-
-  app.config.globalProperties.$axios = axios;
-  // ^ ^ ^ this will allow you to use this.$axios (for Vue Options API form)
-  //       so you won't necessarily have to import axios in each vue file
-
-  app.config.globalProperties.$api = api;
-  // ^ ^ ^ this will allow you to use this.$api (for Vue Options API form)
-  //       so you can easily perform requests against your app's API
+  app.config.globalProperties.$axios = axios; // axios normal
+  app.config.globalProperties.$api = api; // axios con baseURL
 });
 
 export { api };

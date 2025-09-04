@@ -90,8 +90,7 @@
 
 <script>
 import { ref, computed } from "vue";
-import axios from "axios";
-
+import { api } from "src/boot/axios";
 export default {
   name: "EstatusPedido",
   setup() {
@@ -143,9 +142,7 @@ export default {
       if (!pedidoId.value) return;
       cargando.value = true;
       try {
-        const res = await axios.get(
-          `http://localhost:8082/api/ventas/${pedidoId.value}`
-        );
+        const res = await api.get(`/ventas/${pedidoId.value}`);
         pedido.value = res.data;
 
         // Animación secuencial solo para etapas completadas

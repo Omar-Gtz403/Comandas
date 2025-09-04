@@ -20,6 +20,7 @@
     "core-js": "^3.6.5",
     "html5-qrcode": "^2.3.8",
     "pinia": "^2.0.11",
+    "qr-code-styling": "^1.9.2",
     "qrcode.vue": "^3.6.0",
     "quasar": "^2.18.1",
     "vue": "^3.0.0",
