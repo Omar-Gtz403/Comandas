@@ -1,6 +1,5 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <!-- Contenido -->
     <q-page-container>
       <q-page class="q-pa-lg bg-grey-2">
         <q-card
@@ -16,6 +15,7 @@
 
           <q-form @submit="registrarProducto" class="q-gutter-md q-pa-md">
             <div class="row q-col-gutter-md">
+              <!-- Campos de texto -->
               <div class="col-12 col-md-6">
                 <q-input
                   filled
@@ -24,8 +24,6 @@
                   clearable
                   dense
                   outlined
-                  :rules="[(val) => !!val || 'Requerido']"
-                  prepend-icon="barcode"
                 />
               </div>
 
@@ -37,8 +35,6 @@
                   clearable
                   dense
                   outlined
-                  :rules="[(val) => !!val || 'Requerido']"
-                  prepend-icon="inventory_2"
                 />
               </div>
 
@@ -50,7 +46,6 @@
                   clearable
                   dense
                   outlined
-                  prepend-icon="local_shipping"
                 />
               </div>
 
@@ -58,12 +53,10 @@
                 <q-input
                   filled
                   v-model.number="producto.precioCompra"
-                  label="Precio Compra"
                   type="number"
+                  label="Precio Compra"
                   dense
                   outlined
-                  clearable
-                  prepend-icon="attach_money"
                 />
               </div>
 
@@ -71,12 +64,10 @@
                 <q-input
                   filled
                   v-model.number="producto.precioVenta"
-                  label="Precio Venta"
                   type="number"
+                  label="Precio Venta"
                   dense
                   outlined
-                  clearable
-                  prepend-icon="paid"
                 />
               </div>
 
@@ -84,12 +75,10 @@
                 <q-input
                   filled
                   v-model.number="producto.cantidadExistente"
-                  label="Cantidad Existente"
                   type="number"
+                  label="Cantidad Existente"
                   dense
                   outlined
-                  clearable
-                  prepend-icon="inventory"
                 />
               </div>
 
@@ -102,8 +91,6 @@
                   dense
                   outlined
                   clearable
-                  :rules="[(val) => !!val || 'Requerido']"
-                  prepend-icon="description"
                 />
               </div>
 
@@ -111,12 +98,10 @@
                 <q-input
                   filled
                   v-model.number="producto.stockMin"
-                  label="Stock Mínimo"
                   type="number"
+                  label="Stock Mínimo"
                   dense
                   outlined
-                  clearable
-                  prepend-icon="signal_cellular_alt"
                 />
               </div>
 
@@ -124,16 +109,14 @@
                 <q-input
                   filled
                   v-model.number="producto.stockMax"
-                  label="Stock Máximo"
                   type="number"
+                  label="Stock Máximo"
                   dense
                   outlined
-                  clearable
-                  prepend-icon="signal_cellular_4_bar"
                 />
               </div>
 
-              <!-- Caducidad con calendario y resaltado -->
+              <!-- Caducidad con calendario -->
               <div class="col-12 col-md-6">
                 <q-input
                   filled
@@ -141,8 +124,6 @@
                   label="Caducidad"
                   dense
                   outlined
-                  clearable
-                  prepend-icon="event"
                 >
                   <template v-slot:append>
                     <q-icon
@@ -160,30 +141,30 @@
                       v-model="producto.caducidad"
                       mask="YYYY-MM-DD"
                       color="primary"
-                      header-color="primary"
-                      text-color="white"
                       today-btn
-                      default-view="Calendar"
-                      :options="highlightDates"
                       @update:model-value="dateDialog = false"
                     />
                   </q-popup-proxy>
                 </q-input>
               </div>
 
-              <div class="col-12 col-md-6">
-                <q-input
+              <!-- 📂 Cargar Imagen -->
+              <div class="col-12">
+                <q-file
+                  v-model="producto.file"
+                  label="Seleccionar Imagen"
                   filled
-                  v-model="producto.img"
-                  label="URL de Imagen"
                   dense
                   outlined
                   clearable
-                  prepend-icon="image"
+                  use-chips
+                  accept="image/*"
+                  prepend-icon="attach_file"
                 />
               </div>
             </div>
 
+            <!-- Botones -->
             <div class="row justify-end q-gutter-sm q-mt-md">
               <q-btn
                 label="Guardar"
@@ -203,21 +184,14 @@
         </q-card>
       </q-page>
     </q-page-container>
-
-    <!-- Footer -->
-    <q-footer class="bg-grey-2 text-black">
-      <q-toolbar class="justify-center">
-        <div class="text-center text-subtitle2">Registro de Productos</div>
-      </q-toolbar>
-    </q-footer>
   </q-layout>
 </template>
 
 <script>
 import { ref } from "vue";
 import { useQuasar } from "quasar";
-import axios from "axios";
 import { api } from "src/boot/axios";
+
 export default {
   name: "RegistrarProducto",
   setup() {
@@ -235,24 +209,30 @@ export default {
       stockMax: 0,
       caducidad: "",
       cantidadExistente: 0,
-      img: "",
+      file: null, // 📂 aquí se guarda la imagen
     });
-
-    // Función para resaltar fechas próximas a caducar en rojo
-    const highlightDates = (date) => {
-      if (!date) return true;
-      const today = new Date();
-      const d = new Date(date);
-      const diffDays = (d - today) / (1000 * 60 * 60 * 24);
-      if (diffDays >= 0 && diffDays <= 7) {
-        return "bg-red text-white"; // días próximos a caducar
-      }
-      return true; // fechas normales
-    };
 
     const registrarProducto = async () => {
       try {
-        await api.post("/productos", producto.value);
+        const formData = new FormData();
+        formData.append("codigoBarras", producto.value.codigoBarras);
+        formData.append("nombreProducto", producto.value.nombreProducto);
+        formData.append("proveedor", producto.value.proveedor);
+        formData.append("descripcion", producto.value.descripcion);
+        formData.append("precioCompra", producto.value.precioCompra);
+        formData.append("precioVenta", producto.value.precioVenta);
+        formData.append("stockMin", producto.value.stockMin);
+        formData.append("stockMax", producto.value.stockMax);
+        formData.append("caducidad", producto.value.caducidad);
+        formData.append("cantidadExistente", producto.value.cantidadExistente);
+        if (producto.value.file) {
+          formData.append("file", producto.value.file);
+        }
+
+        await api.post("/productos", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
         $q.notify({
           type: "positive",
           message: "Producto registrado con éxito!",
@@ -281,7 +261,7 @@ export default {
         stockMax: 0,
         caducidad: "",
         cantidadExistente: 0,
-        img: "",
+        file: null,
       };
     };
 
@@ -290,7 +270,6 @@ export default {
       registrarProducto,
       resetForm,
       dateDialog,
-      highlightDates,
     };
   },
 };

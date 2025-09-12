@@ -3,9 +3,19 @@ package com.alertas.controller;
 import com.alertas.entity.Producto;
 import com.alertas.repository.ProductoRepository;
 import com.alertas.service.ProductoService;
-import org.springframework.web.bind.annotation.*;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path; 
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+
+
 
 @RestController
 @RequestMapping("/api/productos")
@@ -56,5 +66,54 @@ public class ProductoController {
 	    }
 	    productoRepository.deleteById(codigoBarras);
 	}
+	
+	@Value("${app.upload.dir}")
+	private String uploadDir;
+
+	@PostMapping(consumes = {"multipart/form-data"})
+	public Producto crearProductoConImagen(
+	        @RequestParam("codigoBarras") String codigoBarras,
+	        @RequestParam("nombreProducto") String nombreProducto,
+	        @RequestParam("proveedor") String proveedor,
+	        @RequestParam("descripcion") String descripcion,
+	        @RequestParam("precioCompra") Double precioCompra,
+	        @RequestParam("precioVenta") Double precioVenta,
+	        @RequestParam("stockMin") Integer stockMin,
+	        @RequestParam("stockMax") Integer stockMax,
+	        @RequestParam("caducidad") String caducidad,
+	        @RequestParam("cantidadExistente") Double cantidadExistente,
+	        @RequestParam("file") MultipartFile file
+	) throws IOException {
+
+	    // Crear directorio si no existe
+	    Path uploadPath = Paths.get(uploadDir);
+	    if (!Files.exists(uploadPath)) {
+	        Files.createDirectories(uploadPath);
+	    }
+
+	    // Guardar archivo
+	    String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+	    Path path = uploadPath.resolve(fileName);
+	    Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+
+	    // Crear producto
+	    Producto producto = new Producto();
+	    producto.setCodigoBarras(codigoBarras);
+	    producto.setNombreProducto(nombreProducto);
+	    producto.setProveedor(proveedor);
+	    producto.setDescripcion(descripcion);
+	    producto.setPrecioCompra(precioCompra);
+	    producto.setPrecioVenta(precioVenta);
+	    producto.setStockMin(stockMin);
+	    producto.setStockMax(stockMax);
+	    producto.setCaducidad(caducidad);
+	    producto.setCantidadExistente(cantidadExistente);
+
+	    // Guardar solo la URL relativa
+	    producto.setImg("/uploads/" + fileName);
+
+	    return productoRepository.save(producto);
+	}
+
 
 }

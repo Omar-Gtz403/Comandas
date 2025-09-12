@@ -20,7 +20,9 @@
           <q-avatar size="50px" class="q-mb-xs">
             <img src="https://cdn.quasar.dev/img/boy-avatar.png" />
           </q-avatar>
-          <div class="text-weight-bold">.</div>
+          <div class="text-weight-bold">
+            {{ usuario?.nombreUsuario || "." }}
+          </div>
           <div>@</div>
         </div>
       </q-img>
@@ -28,38 +30,13 @@
       <!-- Lista de secciones -->
       <q-scroll-area style="height: calc(100% - 120px); margin-top: 120px">
         <q-list padding>
+
+          <!-- 📌 Opciones para clientes -->
           <q-item clickable v-ripple @click="irA('/')">
             <q-item-section avatar>
               <q-icon name="restaurant_menu" />
             </q-item-section>
             <q-item-section>Menú</q-item-section>
-          </q-item>
-
-          <q-item clickable v-ripple @click="irA('/registro')">
-            <q-item-section avatar>
-              <q-icon name="add_box" />
-            </q-item-section>
-            <q-item-section>Registrar Producto</q-item-section>
-          </q-item>
-
-          <q-item clickable v-ripple @click="irA('/pagos')">
-            <q-item-section avatar>
-              <q-icon name="payment" />
-            </q-item-section>
-            <q-item-section>Pagos</q-item-section>
-          </q-item>
-          <q-item clickable v-ripple @click="irA('/productos')">
-            <q-item-section avatar>
-              <q-icon name="inventory_2" />
-            </q-item-section>
-            <q-item-section>Lista de Productos</q-item-section>
-          </q-item>
-
-          <q-item clickable v-ripple @click="irA('/pedidos')">
-            <q-item-section avatar>
-              <q-icon name="shopping_cart" />
-            </q-item-section>
-            <q-item-section>Pedidos</q-item-section>
           </q-item>
 
           <q-item clickable v-ripple @click="irA('/status')">
@@ -68,6 +45,58 @@
             </q-item-section>
             <q-item-section>Estatus De Mi Pedido</q-item-section>
           </q-item>
+
+          <q-item clickable v-ripple @click="irA('/ticket')">
+            <q-item-section avatar>
+              <q-icon name="confirmation_number" />
+            </q-item-section>
+            <q-item-section>Ticket</q-item-section>
+          </q-item>
+
+          <!-- 📌 Opciones de administración (solo empresa) -->
+          <template v-if="[1, 2].includes(usuario?.permiso)">
+            <q-separator spaced />
+            <div class="text-subtitle2 text-grey q-px-md q-mb-sm">
+              Administración
+            </div>
+
+            <q-item clickable v-ripple @click="irA('/registro')">
+              <q-item-section avatar>
+                <q-icon name="add_box" />
+              </q-item-section>
+              <q-item-section>Registrar Producto</q-item-section>
+            </q-item>
+
+            <q-item clickable v-ripple @click="irA('/pagos')">
+              <q-item-section avatar>
+                <q-icon name="payment" />
+              </q-item-section>
+              <q-item-section>Pagos</q-item-section>
+            </q-item>
+
+            <q-item clickable v-ripple @click="irA('/productos')">
+              <q-item-section avatar>
+                <q-icon name="inventory_2" />
+              </q-item-section>
+              <q-item-section>Lista de Productos</q-item-section>
+            </q-item>
+
+            <q-item clickable v-ripple @click="irA('/pedidos')">
+              <q-item-section avatar>
+                <q-icon name="shopping_cart" />
+              </q-item-section>
+              <q-item-section>Pedidos</q-item-section>
+            </q-item>
+
+            <!-- Botón de cerrar sesión -->
+            <q-separator spaced />
+            <q-item clickable v-ripple @click="cerrarSesion">
+              <q-item-section avatar>
+                <q-icon name="logout" />
+              </q-item-section>
+              <q-item-section>Cerrar Sesión</q-item-section>
+            </q-item>
+          </template>
         </q-list>
       </q-scroll-area>
     </q-drawer>
@@ -95,12 +124,20 @@ export default {
     const drawer = ref(false);
     const router = useRouter();
 
+    // Obtener usuario desde localStorage
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+
     const irA = (ruta) => {
       drawer.value = false;
       router.push(ruta);
     };
 
-    return { drawer, irA };
+    const cerrarSesion = () => {
+      localStorage.removeItem("usuario");
+      router.push("/login");
+    };
+
+    return { drawer, irA, usuario, cerrarSesion };
   },
 };
 </script>

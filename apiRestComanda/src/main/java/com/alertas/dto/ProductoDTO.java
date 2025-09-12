@@ -7,7 +7,7 @@ public class ProductoDTO {
 	private String nombreProducto;
 	private String descripcion;
 	private Double precio;
-	private String img;
+	private String img; 
 
 	public ProductoDTO(Producto producto) {
 		this.codigoBarras = producto.getCodigoBarras();

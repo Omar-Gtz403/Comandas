@@ -1,19 +1,19 @@
 import { boot } from "quasar/wrappers";
 import axios from "axios";
 
-// Detecta si estás en desarrollo o producción
-const BASE_URL =
-  process.env.NODE_ENV === "production"
-    ? "http://TU_IP_O_DOMINIO:8082" // Cambia TU_IP_O_DOMINIO por la IP de tu servidor
-    : "https://192.168.1.69:8443"; // Localhost para desarrollo
+const api = axios.create({ baseURL: "https://35.209.166.22/api" });
 
-const api = axios.create({
-  baseURL: `${BASE_URL}/api`, // Solo pones /api al final
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export default boot(({ app }) => {
-  app.config.globalProperties.$axios = axios; // axios normal
-  app.config.globalProperties.$api = api; // axios con baseURL
+  app.config.globalProperties.$axios = axios;
+  app.config.globalProperties.$api = api;
 });
 
 export { api };
