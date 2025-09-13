@@ -1,7 +1,7 @@
 import { boot } from "quasar/wrappers";
 import axios from "axios";
 
-const api = axios.create({ baseURL: "https://35.209.166.22/api" });
+const api = axios.create({ baseURL: "https://35.209.166.22:8443/api" });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");

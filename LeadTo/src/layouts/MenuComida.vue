@@ -16,9 +16,11 @@
           />
         </q-btn>
       </q-toolbar>
+
+      <!-- Productos -->
       <div class="q-pa-md row q-col-gutter-md justify-center">
         <div
-          v-for="(item, index) in menu"
+          v-for="(item, index) in productosAMostrar"
           :key="index"
           class="col-xs-12 col-sm-6 col-md-4 col-lg-3"
         >
@@ -56,6 +58,17 @@
         </div>
       </div>
 
+      <!-- Botón para cargar más -->
+      <div class="q-mt-md flex flex-center">
+        <q-btn
+          v-if="productosVisibles < menu.length"
+          label="Cargar más"
+          color="primary"
+          @click="productosVisibles += 5"
+        />
+      </div>
+
+      <!-- Carrito -->
       <q-dialog v-model="dialogVisible">
         <q-card style="min-width: 450px">
           <q-card-section>
@@ -129,10 +142,9 @@
 
 <script>
 import { ref, computed, onMounted } from "vue";
-import { useQuasar } from "quasar";
+import { useQuasar, Notify } from "quasar";
 import { api } from "src/boot/axios";
 import { useRouter } from "vue-router";
-import { Notify } from "quasar";
 
 export default {
   setup() {
@@ -141,7 +153,9 @@ export default {
     const carrito = ref([]);
     const dialogVisible = ref(false);
     const router = useRouter();
-    const carritoAnimado = ref(false);
+
+    // Control de productos visibles
+    const productosVisibles = ref(5);
 
     const getMenu = async () => {
       try {
@@ -151,38 +165,11 @@ export default {
         console.error("Error cargando productos:", err);
       }
     };
-    /*const getMenu = async () => {
-  menu.value = [
-    {
-      codigoBarras: "001",
-      nombreProducto: "Tacos al Pastor",
-      descripcion: "Tortilla de maíz, carne al pastor y piña.",
-      precioVenta: 55,
-      img: "https://www.entornoturistico.com/wp-content/uploads/2023/02/3-tacos-al-pastor-1280x720.jpeg"
-    },
-    {
-      codigoBarras: "002",
-      nombreProducto: "Pozole",
-      descripcion: "Sopa tradicional de maíz con carne y condimentos.",
-      precioVenta: 90,
-      img: "https://nutritionstudies.org/wp-content/uploads/2023/10/red-posole-with-mushroom.jpg"
-    },
-    {
-      codigoBarras: "003",
-      nombreProducto: "Enchiladas Verdes",
-      descripcion: "Tortillas rellenas bañadas en salsa verde.",
-      precioVenta: 75,
-      img: "https://i.ytimg.com/vi/E_qLMOf9lDs/sddefault.jpg"
-    },
-    {
-      codigoBarras: "004",
-      nombreProducto: "Guacamole",
-      descripcion: "Aguacate, jitomate, cebolla y limón.",
-      precioVenta: 60,
-      img: "https://cdn.pixabay.com/photo/2016/03/05/19/02/guacamole-1238252_1280.jpg"
-    }
-  ];
-};*/
+
+    const productosAMostrar = computed(() => {
+      return menu.value.slice(0, productosVisibles.value);
+    });
+
     const agregarAlCarrito = (item) => {
       const index = carrito.value.findIndex(
         (p) => p.codigoBarras === item.codigoBarras
@@ -235,8 +222,6 @@ export default {
           })),
         };
 
-        // 🔹 Guardar la venta en backend y obtener el id generado
-
         const res = await api.post("/ventas", venta);
         Notify.create({
           type: "positive",
@@ -245,7 +230,6 @@ export default {
           position: "top",
         });
 
-        // 🔹 Pasar el idVenta y total a la pantalla de pagos
         router.push({
           path: "/pagos",
           query: { total: totalCarrito.value, idVenta: res.data.id },
@@ -288,6 +272,8 @@ export default {
       confirmarPedido,
       totalCarrito,
       totalItems,
+      productosVisibles,
+      productosAMostrar,
     };
   },
 };
