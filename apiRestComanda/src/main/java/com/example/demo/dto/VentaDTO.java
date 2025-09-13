@@ -1,9 +1,9 @@
-package com.alertas.dto;
+package com.example.demo.dto;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.alertas.entity.Venta;
+import com.example.demo.entity.Venta;
 
 public class VentaDTO {
     private Long id;

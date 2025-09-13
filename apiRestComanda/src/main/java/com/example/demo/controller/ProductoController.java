@@ -1,8 +1,8 @@
-package com.alertas.controller;
+package com.example.demo.controller;
 
-import com.alertas.entity.Producto;
-import com.alertas.repository.ProductoRepository;
-import com.alertas.service.ProductoService;
+import com.example.demo.entity.Producto;
+import com.example.demo.repository.ProductoRepository;
+import com.example.demo.service.ProductoService;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;

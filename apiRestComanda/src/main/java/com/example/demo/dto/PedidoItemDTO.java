@@ -1,4 +1,4 @@
-package com.alertas.dto;
+package com.example.demo.dto;
 
 public class PedidoItemDTO {
 	private Integer idProducto;

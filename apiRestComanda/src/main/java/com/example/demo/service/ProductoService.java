@@ -1,7 +1,8 @@
-package com.alertas.service;
+package com.example.demo.service;
 
-import com.alertas.entity.Producto;
-import com.alertas.repository.ProductoRepository;
+import com.example.demo.entity.Producto;
+import com.example.demo.repository.ProductoRepository;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;

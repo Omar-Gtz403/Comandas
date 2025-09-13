@@ -1,8 +1,9 @@
-package com.alertas.repository;
+package com.example.demo.repository;
 
-import com.alertas.entity.Producto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import com.example.demo.entity.Producto;
 
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, String> {

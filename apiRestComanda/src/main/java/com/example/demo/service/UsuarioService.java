@@ -1,10 +1,10 @@
-package com.alertas.service;
+package com.example.demo.service;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.alertas.entity.Usuario;
-import com.alertas.repository.UsuarioRepository;
+import com.example.demo.entity.Usuario;
+import com.example.demo.repository.UsuarioRepository;
 
 import java.util.Optional;
 

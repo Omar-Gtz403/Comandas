@@ -1,8 +1,8 @@
-package com.alertas.controller;
+package com.example.demo.controller;
 
-import com.alertas.entity.Venta;
-import com.alertas.service.VentaService;
-import com.alertas.dto.*;
+import com.example.demo.dto.*;
+import com.example.demo.entity.Venta;
+import com.example.demo.service.VentaService;
 
 import java.util.List;
 import java.util.stream.Collectors;

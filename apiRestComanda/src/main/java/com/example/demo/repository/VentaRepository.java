@@ -1,7 +1,8 @@
-package com.alertas.repository;
+package com.example.demo.repository;
 
-import com.alertas.entity.Venta;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.example.demo.entity.Venta;
 
 public interface VentaRepository extends JpaRepository<Venta, Long> {
 }

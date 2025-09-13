@@ -1,6 +1,6 @@
-package com.alertas.dto;
+package com.example.demo.dto;
 
-import com.alertas.entity.Producto;
+import com.example.demo.entity.Producto;
 
 public class ProductoDTO {
 	private String codigoBarras;

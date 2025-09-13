@@ -1,10 +1,10 @@
-package com.alertas.controller;
+package com.example.demo.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.alertas.entity.Usuario;
-import com.alertas.service.UsuarioService;
+import com.example.demo.entity.Usuario;
+import com.example.demo.service.UsuarioService;
 
 import java.util.Map;
 import java.util.Optional;

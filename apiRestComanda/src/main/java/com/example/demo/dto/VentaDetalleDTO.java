@@ -1,6 +1,6 @@
-package com.alertas.dto;
+package com.example.demo.dto;
 
-import com.alertas.entity.VentaDetalle;
+import com.example.demo.entity.VentaDetalle;
 
 public class VentaDetalleDTO {
 
