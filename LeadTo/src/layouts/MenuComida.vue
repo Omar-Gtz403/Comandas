@@ -141,7 +141,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useQuasar, Notify } from "quasar";
 import { api } from "src/boot/axios";
 import { useRouter } from "vue-router";
@@ -236,6 +236,7 @@ export default {
         });
 
         carrito.value = [];
+        localStorage.removeItem("carrito"); // limpiar carrito guardado
         dialogVisible.value = false;
       } catch (err) {
         console.error("Error registrando venta:", err);
@@ -258,7 +259,24 @@ export default {
       carrito.value.reduce((acc, item) => acc + item.cantidad, 0)
     );
 
-    onMounted(getMenu);
+    // Guardar carrito automáticamente en localStorage
+    watch(
+      carrito,
+      (nuevoCarrito) => {
+        localStorage.setItem("carrito", JSON.stringify(nuevoCarrito));
+      },
+      { deep: true }
+    );
+
+    onMounted(() => {
+      getMenu();
+
+      // Recuperar carrito si existe en localStorage
+      const carritoGuardado = localStorage.getItem("carrito");
+      if (carritoGuardado) {
+        carrito.value = JSON.parse(carritoGuardado);
+      }
+    });
 
     return {
       menu,

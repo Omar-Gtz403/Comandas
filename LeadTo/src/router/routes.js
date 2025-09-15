@@ -8,6 +8,8 @@ const routes = [
       { path: "ticket", component: () => import("layouts/Ticket.vue") },
       { path: "pedidos", component: () => import("layouts/admin-ventas.vue") },
       { path: "registro", component: () => import("layouts/Registro.vue") },
+      { path: "scan", component: () => import("layouts/ScanQR.vue") },
+      { path: "pagos", component: () => import("layouts/PagosComandas.vue") },
       {
         path: "productos",
         component: () => import("layouts/ListaProductos.vue"),
