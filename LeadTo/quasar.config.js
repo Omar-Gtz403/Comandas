@@ -45,6 +45,9 @@ module.exports = configure(function (ctx) {
     },
 
     devServer: {
+       headers: {
+        'Permissions-Policy': 'geolocation=(self)'
+      },
       server: {
         type: "https",
         options: {
