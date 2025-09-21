@@ -1,4 +1,19 @@
-// app global css in SCSS form
-.q-footer {
-  z-index: 3000;
+// Estilos globales
+body {
+  font-size: 14px; // móvil por defecto
+}
+
+.container {
+  width: 100%; // móvil ocupa todo
+  padding: 8px;
+
+  @media (min-width: $breakpoint-sm) {
+    max-width: 720px; // tablet
+    padding: 16px;
+  }
+
+  @media (min-width: $breakpoint-md) {
+    max-width: 960px; // escritorio
+    padding: 24px;
+  }
 }

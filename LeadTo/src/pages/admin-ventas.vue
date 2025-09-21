@@ -5,63 +5,68 @@
         <div class="text-h6 text-primary text-center">Ventas</div>
       </q-card-section>
 
-      <q-table
-        :rows="ventas"
-        :columns="columns"
-        row-key="id"
-        flat
-        bordered
-        separator="cell"
-        :rows-per-page-options="[50]"
-      >
-        <!-- Productos -->
-        <template v-slot:body-cell-productos="props">
-          <div class="column q-gutter-xs">
-            <div
-              v-for="(d, idx) in props.row.detalles"
-              :key="idx"
-              class="text-body2"
-            >
-              {{ d.cantidad }}x {{ d.nombreProducto }}
+      <div class="responsive-table">
+        <q-table
+          :rows="ventas"
+          :columns="columns"
+          row-key="id"
+          flat
+          bordered
+          separator="cell"
+          wrap-cells
+          :rows-per-page-options="[50]"
+          :grid="$q.screen.lt.md"
+        >
+          <!-- Productos -->
+          <template v-slot:body-cell-productos="props">
+            <div class="column q-gutter-xs">
+              <div
+                v-for="(d, idx) in props.row.detalles"
+                :key="idx"
+                class="text-body2"
+              >
+                {{ d.cantidad }}x {{ d.nombreProducto }}
+              </div>
             </div>
-          </div>
-        </template>
+          </template>
 
-        <!-- Total -->
-        <template v-slot:body-cell-total="props">
-          <div class="text-right text-weight-bold text-primary">
-            ${{ props.row.total.toFixed(2) }}
-          </div>
-        </template>
+          <!-- Total -->
+          <template v-slot:body-cell-total="props">
+            <div class="text-right text-weight-bold text-primary">
+              ${{ props.row.total.toFixed(2) }}
+            </div>
+          </template>
 
-        <!-- Estado -->
-        <template v-slot:body-cell-status="props">
-          <div class="row items-center justify-center q-gutter-sm">
-            <q-chip
-              :color="getColor(props.row.status)"
-              text-color="white"
-              dense
-              class="text-weight-medium"
-            >
-              {{ getLabel(props.row.status) }}
-            </q-chip>
-            <q-select
-              v-model="props.row.status"
-              :options="estatusOptions"
-              dense
-              outlined
-              emit-value
-              map-options
-              style="min-width: 150px"
-              @update:model-value="(val) => actualizarStatus(props.row.id, val)"
-            />
-          </div>
-        </template>
-      </q-table>
+          <!-- Estado -->
+          <template v-slot:body-cell-status="props">
+            <div class="row items-center justify-center q-gutter-sm">
+              <q-chip
+                :color="getColor(props.row.status)"
+                text-color="white"
+                dense
+                class="text-weight-medium"
+              >
+                {{ getLabel(props.row.status) }}
+              </q-chip>
+              <q-select
+                v-model="props.row.status"
+                :options="estatusOptions"
+                dense
+                outlined
+                emit-value
+                map-options
+                class="status-select"
+                @update:model-value="
+                  (val) => actualizarStatus(props.row.id, val)
+                "
+              />
+            </div>
+          </template>
+        </q-table>
+      </div>
     </q-card>
   </q-page>
 </template>
-
 <script>
 import { ref, onMounted, getCurrentInstance } from "vue";
 import { api } from "src/boot/axios";
@@ -176,10 +181,22 @@ export default {
   },
 };
 </script>
-
 <style scoped>
+/* Hace scroll en pantallas pequeñas */
+.responsive-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .q-table .q-td {
   vertical-align: middle;
   padding: 10px;
+}
+
+/* Ajusta ancho del select en móviles */
+@media (max-width: 768px) {
+  .status-select {
+    min-width: 100% !important;
+  }
 }
 </style>

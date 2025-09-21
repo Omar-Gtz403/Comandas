@@ -1,18 +1,19 @@
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-page-container class="bg-grey-1">
-      <q-toolbar class="q-px-md q-py-sm">
-        <q-toolbar-title class="text-h5 text-center text-uppercase">
+      <!-- Toolbar -->
+      <q-toolbar class="q-px-sm q-py-xs">
+        <q-toolbar-title class="text-h6 text-center text-uppercase">
           Menú
         </q-toolbar-title>
-        <q-btn flat round size="lg" icon="shopping_cart" @click="abrirCarrito">
+        <q-btn flat round size="md" icon="shopping_cart" @click="abrirCarrito">
           <q-badge
             v-if="totalItems > 0"
             color="red"
             floating
             transparent
             :label="totalItems"
-            style="font-size: 13px; padding: 3px 6px"
+            class="text-caption"
           />
         </q-btn>
       </q-toolbar>
@@ -70,7 +71,7 @@
 
       <!-- Carrito -->
       <q-dialog v-model="dialogVisible">
-        <q-card style="min-width: 450px">
+        <q-card style="width: 100%; max-width: 450px">
           <q-card-section>
             <div class="text-h6">Carrito de Compras</div>
           </q-card-section>
@@ -300,10 +301,14 @@ export default {
 <style lang="sass" scoped>
 .my-card
   width: 100%
+  max-width: 360px
+  margin: 0 auto
   border-radius: 12px
   transition: transform 0.25s ease, box-shadow 0.25s ease
   cursor: pointer
-  &:hover
+
+@media (hover: hover)
+  .my-card:hover
     transform: scale(1.05)
     box-shadow: 0 12px 25px rgba(0,0,0,0.2)
 
@@ -311,6 +316,8 @@ export default {
   border-top-left-radius: 12px
   border-top-right-radius: 12px
   transition: transform 0.3s ease
-  &:hover
+
+@media (hover: hover)
+  .my-card-img:hover
     transform: scale(1.1)
 </style>

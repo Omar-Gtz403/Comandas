@@ -43,6 +43,7 @@ import axios from "axios";
 import { api } from "src/boot/axios";
 
 export default {
+  name: "PagosComandas",
   setup() {
     const $q = useQuasar();
     const route = useRoute();

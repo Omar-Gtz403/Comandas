@@ -1,13 +1,25 @@
 <template>
-  <q-page padding>
-    <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-md">
-      <h2 class="text-xl font-bold mb-4">Registrar Usuario</h2>
+  <q-page
+    class="flex flex-center bg-gradient-to-r from-blue-500 to-indigo-600 q-pa-md"
+  >
+    <div
+      class="w-full max-w-md bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-8 transition-all duration-300 hover:scale-[1.01]"
+    >
+      <h2
+        class="text-3xl font-extrabold text-center text-gray-800 mb-8 tracking-tight"
+      >
+        Registrar Usuario
+      </h2>
 
       <q-form @submit="registrarUsuario" class="q-gutter-md">
         <q-input
           v-model="usuario.nombreUsuario"
           label="Nombre de Usuario"
           outlined
+          dense
+          standout="bg-blue-50 text-black"
+          class="rounded-lg"
+          color="primary"
           required
         />
 
@@ -16,6 +28,10 @@
           type="password"
           label="Contraseña"
           outlined
+          dense
+          standout="bg-blue-50 text-black"
+          class="rounded-lg"
+          color="primary"
           required
         />
 
@@ -24,13 +40,17 @@
           :options="permisos"
           label="Permiso"
           outlined
+          dense
+          standout="bg-blue-50 text-black"
+          class="rounded-lg"
+          color="primary"
         />
 
         <q-btn
           label="Registrar"
           type="submit"
           color="primary"
-          class="full-width"
+          class="w-full py-3 text-lg font-bold rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
         />
       </q-form>
     </div>
@@ -47,23 +67,23 @@ const router = useRouter();
 const usuario = ref({
   nombreUsuario: "",
   password: "",
-  permiso: 1, // solo administrativos
+  permiso: 1,
 });
 
 const permisos = [
   { label: "Administrador", value: 1 },
-  { label: "Usuario", value: 0 }, // no se usará en tu caso
+  { label: "Usuario", value: 0 },
 ];
 
 const registrarUsuario = async () => {
   try {
     await api.post("/auth/register", usuario.value);
-    alert("Usuario registrado con éxito");
+    $q.notify({ type: "positive", message: "Usuario registrado con éxito" });
     usuario.value = { nombreUsuario: "", password: "", permiso: 1 };
-    router.push("/productos"); // redirigir a pantalla admin después de registrar
+    router.push("/productos");
   } catch (err) {
     console.error("Error registrando usuario:", err);
-    alert("Error al registrar usuario");
+    $q.notify({ type: "negative", message: "Error al registrar usuario" });
   }
 };
 </script>

@@ -3,16 +3,44 @@ const routes = [
     path: "/",
     component: () => import("layouts/MainLayout.vue"),
     children: [
-      { path: "", component: () => import("layouts/MenuComida.vue") }, // página principal
-      { path: "status", component: () => import("layouts/Estatuspedido.vue") },
-      { path: "ticket", component: () => import("layouts/Ticket.vue") },
-      { path: "pedidos", component: () => import("layouts/admin-ventas.vue") },
-      { path: "registro", component: () => import("layouts/Registro.vue") },
-      { path: "scan", component: () => import("layouts/ScanQR.vue") },
-      { path: "pagos", component: () => import("layouts/PagosComandas.vue") },
+      { path: "", component: () => import("pages/MenuComida.vue") }, // página principal
+      { path: "status", component: () => import("pages/Estatuspedido.vue") },
+      { path: "ticket", component: () => import("pages/Ticket.vue") },
+      { path: "scan", component: () => import("pages/ScanQR.vue") },
+      {
+        path: "pagos",
+        component: () => import("pages/PagosComandasLayout.vue"),
+      },
+      {
+        path: "scan",
+        component: () => import("pages/ScanQR.vue"),
+        beforeEnter: (to, from, next) => {
+          const usuario = JSON.parse(localStorage.getItem("usuario"));
+          if (usuario && usuario.permiso === 1) next();
+          else next("/login");
+        },
+      },
+      {
+        path: "registro",
+        component: () => import("pages/Registro.vue"),
+        beforeEnter: (to, from, next) => {
+          const usuario = JSON.parse(localStorage.getItem("usuario"));
+          if (usuario && usuario.permiso === 1) next();
+          else next("/login");
+        },
+      },
+      {
+        path: "pedidos",
+        component: () => import("pages/admin-ventas.vue"),
+        beforeEnter: (to, from, next) => {
+          const usuario = JSON.parse(localStorage.getItem("usuario"));
+          if (usuario && usuario.permiso === 1) next();
+          else next("/login");
+        },
+      },
       {
         path: "productos",
-        component: () => import("layouts/ListaProductos.vue"),
+        component: () => import("pages/ListaProductos.vue"),
         beforeEnter: (to, from, next) => {
           const usuario = JSON.parse(localStorage.getItem("usuario"));
           if (usuario && usuario.permiso === 1) next();
@@ -23,7 +51,7 @@ const routes = [
       {
         path: "registrousuario",
         name: "registerpage",
-        component: () => import("layouts/CrearUsuario.vue"),
+        component: () => import("pages/CrearUsuario.vue"),
         beforeEnter: (to, from, next) => {
           const usuario = JSON.parse(localStorage.getItem("usuario"));
           if (usuario && usuario.permiso === 1) next();
@@ -39,7 +67,7 @@ const routes = [
     path: "/login",
     name: "loginpage",
     component: () => import("layouts/AuthLayout.vue"),
-    children: [{ path: "", component: () => import("layouts/LoginPage.vue") }],
+    children: [{ path: "", component: () => import("pages/LoginPage.vue") }],
   },
 
   // Ruta de error 404

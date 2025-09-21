@@ -1,36 +1,40 @@
 <!DOCTYPE html>
 <html>
-<!--
+  <!--
   WARNING! Make sure that you match all Quasar related
   tags to the same version! (Below it's "@2.7.5")
 -->
 
-<head>
-</head>
+  <head>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+  </head>
 
-<body>
-  <!-- example of injection point where you write your app template -->
-  <div id="q-app"></div>
+  <body>
+    <!-- example of injection point where you write your app template -->
+    <div id="q-app"></div>
 
-  <!-- Add the following at the end of your body tag -->
-  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/quasar@2.7.5/dist/quasar.umd.prod.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/quasar@2.7.5/dist/lang/es.umd.prod.js"></script>
+    <!-- Add the following at the end of your body tag -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quasar@2.7.5/dist/quasar.umd.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quasar@2.7.5/dist/lang/es.umd.prod.js"></script>
 
-  <script>
-    /*
+    <script>
+      /*
       Example kicking off the UI. Obviously, adapt this to your specific needs.
       Assumes you have a <div id="q-app"></div> in your <body> above
      */
-    const app = Vue.createApp({
-      setup() {
-        return {}
-      }
-    })
+      const app = Vue.createApp({
+        setup() {
+          return {};
+        },
+      });
 
-    app.use(Quasar)
-    Quasar.lang.set(Quasar.lang.es)
-    app.mount('#q-app')
-  </script>
-</body>
+      app.use(Quasar);
+      Quasar.lang.set(Quasar.lang.es);
+      app.mount("#q-app");
+    </script>
+  </body>
 </html>

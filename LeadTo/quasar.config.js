@@ -36,17 +36,20 @@ module.exports = configure(function (ctx) {
     ],
 
     build: {
-      vueRouterMode: "hash", // available values: 'hash', 'history'
+      vueRouterMode: "history", // available values: 'hash', 'history'
       chainWebpack(chain) {
         chain
           .plugin("eslint-webpack-plugin")
           .use(ESLintPlugin, [{ extensions: ["js", "vue"] }]);
       },
     },
+    meta: {
+      viewport: "width=device-width, initial-scale=1, shrink-to-fit=no",
+    },
 
     devServer: {
-       headers: {
-        'Permissions-Policy': 'geolocation=(self)'
+      headers: {
+        "Permissions-Policy": "geolocation=(self)",
       },
       server: {
         type: "https",
@@ -60,8 +63,18 @@ module.exports = configure(function (ctx) {
     },
 
     framework: {
-      config: {},
-      plugins: ["Notify"],
+      config: {
+        screen: {
+          sizes: {
+            xs: 480,
+            sm: 768,
+            md: 1024,
+            lg: 1440,
+            xl: 1920,
+          },
+        },
+      },
+      plugins: ["Notify", "Dialog", "Loading"],
     },
 
     animations: ["zoomIn", "zoomOut"],
