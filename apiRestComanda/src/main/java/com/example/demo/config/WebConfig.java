@@ -13,12 +13,12 @@ public class WebConfig implements WebMvcConfigurer {
 		registry.addMapping("/**").allowedOrigins("*").allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
 				.allowedHeaders("*");
 	}
-	 @Value("${app.upload.dir}")
-	    private String uploadDir;
 
-	    @Override
-	    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-	        registry.addResourceHandler("/uploads/**")
-	                .addResourceLocations("file:" + uploadDir + "/");
-	    }
+	@Value("${app.upload.dir}")
+	private String uploadDir;
+
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+		registry.addResourceHandler("/uploads/**").addResourceLocations("file:" + uploadDir + "/");
+	}
 }

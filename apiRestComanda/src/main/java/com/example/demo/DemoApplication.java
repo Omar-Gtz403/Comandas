@@ -11,31 +11,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.apache.catalina.connector.Connector;
 @SpringBootApplication
-public class DemoApplication extends SpringBootServletInitializer {
-
+public class DemoApplication {
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);
     }
-
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-        return builder.sources(DemoApplication.class);
-    }
-    @Configuration
-    public class TomcatConfig {
-
-        @Bean
-        public WebServerFactoryCustomizer<TomcatServletWebServerFactory> servletContainer() {
-            return factory -> {
-                // Conector HTTP que redirige a HTTPS
-                Connector connector = new Connector(TomcatServletWebServerFactory.DEFAULT_PROTOCOL);
-                connector.setScheme("http");
-                connector.setPort(8080);       // HTTP interno
-                connector.setSecure(false);
-                connector.setRedirectPort(8443); // HTTPS interno
-                factory.addAdditionalTomcatConnectors(connector);
-            };
-        }
-    }
-
 }
+
+
