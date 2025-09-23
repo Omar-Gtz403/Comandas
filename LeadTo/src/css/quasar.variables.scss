@@ -1,71 +1,110 @@
-// Quasar SCSS (& Sass) Variables
-// --------------------------------------------------
-// To customize the look and feel of this app, you can override
-// the Sass/SCSS variables found in Quasar's source Sass/SCSS files.
+// Quasar SCSS Variables - Tema Hamburguesería Optimizado
+// -----------------------------------------------------
 
-// Check documentation for full list of Quasar variables
-
-// Your own variables (that are declared here) and Quasar's own
-// ones will be available out of the box in your .vue/.scss/.sass files
-
-// It's highly recommended to change the default colors
-// to match your app's branding.
-// Tip: Use the "Theme Builder" on Quasar's documentation website.
-
-// ---------------------------------------------
-// Quasar SCSS Variables - Tema Hamburguesería
-// ---------------------------------------------
-
+// ----------------------
 // Colores principales
-$primary: #d32f2f; // rojo intenso, apetito y acción
-$secondary: #f57c00; // naranja cálido, quesos y salsas
-$accent: #fbc02d; // amarillo mostaza, pan y cheddar
+// ----------------------
+$primary: #d32f2f; // rojo intenso - apetito y acción
+$secondary: #f57c00; // naranja cálido - quesos y salsas
+$accent: #fbc02d; // amarillo mostaza - pan y cheddar
 
-// Colores de fondo y modo oscuro
-$dark: #3e2723; // marrón oscuro, carne a la parrilla
+// ----------------------
+// Fondos y modo oscuro
+// ----------------------
+$dark: #3e2723; // marrón oscuro - carne a la parrilla
 $dark-page: #2e1b16; // fondo oscuro suave
 $grey-1: #fff8f0; // fondo general claro
 $grey-2: #ffe6d5; // tarjetas y secciones
 $grey-3: #ffcc99; // acentos suaves de fondo
 
+// ----------------------
 // Mensajes y estados
+// ----------------------
 $positive: #4caf50; // verde éxito
 $negative: #b71c1c; // rojo oscuro error
 $info: #0288d1; // azul info
 $warning: #ffb300; // amarillo anaranjado advertencia
 
+// ----------------------
 // Tipografía
+// ----------------------
 $text-color: #3e2723; // marrón oscuro para texto principal
 $text-color-secondary: #5d4037; // marrón medio para subtítulos
 
+// ----------------------
 // Bordes y tarjetas
+// ----------------------
 $border-radius: 12px;
 $card-box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 $card-hover-box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 
+// ----------------------
 // Botones
+// ----------------------
 $btn-border-radius: 12px;
 $btn-padding: 10px 20px;
 $btn-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 $btn-hover-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 
+// Colores para botones por tipo
+$btn-primary-color: $primary;
+$btn-secondary-color: $secondary;
+$btn-positive-color: $positive;
+$btn-negative-color: $negative;
+
 // Hover y focus
 $hover-opacity: 0.85;
 $active-opacity: 0.75;
 
+// ----------------------
 // Gradientes opcionales
+// ----------------------
 $primary-gradient: linear-gradient(135deg, #d32f2f 0%, #f57c00 100%);
 $secondary-gradient: linear-gradient(135deg, #f57c00 0%, #fbc02d 100%);
 
-// Colores para etiquetas y badges
+// ----------------------
+// Badges y etiquetas
+// ----------------------
 $badge-color: $accent;
 $badge-text-color: #3e2723;
 
-// Otros
+// ----------------------
+// Toolbar
+// ----------------------
 $toolbar-background: $primary;
 $toolbar-text-color: #fff;
 $toolbar-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 
+// ----------------------
+// Inputs
+// ----------------------
 $input-border-radius: 10px;
 $input-focus-color: $secondary;
-// amarillo anaranjado (advertencia)
+$input-background: $grey-2;
+$input-text-color: $text-color;
+
+// ----------------------
+// Timeline (para seguimiento de pedido)
+// ----------------------
+$timeline-line-color: $primary;
+$timeline-dot-color: $secondary;
+$timeline-dot-size: 14px;
+$timeline-dot-border-color: $accent;
+$timeline-entry-title-color: $text-color;
+$timeline-entry-subtitle-color: $text-color-secondary;
+
+// ----------------------
+// Notificaciones
+// ----------------------
+$notify-color: $primary;
+$notify-text-color: #fff;
+$notify-positive-color: $positive;
+$notify-negative-color: $negative;
+$notify-info-color: $info;
+$notify-warning-color: $warning;
+
+// ----------------------
+// Otros ajustes globales
+// ----------------------
+$body-background: $grey-1;
+$body-text-color: $text-color;
