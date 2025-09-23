@@ -3,6 +3,7 @@ package com.example.demo.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.persistence.Column;
 import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Service;
@@ -24,7 +25,8 @@ public class VentaService {
 		this.ventaRepository = ventaRepository;
 		this.productoRepository = productoRepository;
 	}
-
+	@Column(nullable = false)
+	private int status = 0;
 	@Transactional
 	public Venta registrarVenta(Venta venta) {
 		for (VentaDetalle detalle : venta.getDetalles()) {
@@ -57,7 +59,10 @@ public class VentaService {
 				.orElseThrow(() -> new RuntimeException("Venta no encontrada con ID: " + ventaId));
 		return venta.getDetalles().stream().map(VentaDetalleDTO::new).collect(Collectors.toList());
 	}
-
+	public Venta obtenerVentaPorFolio(String folio) {
+	    return ventaRepository.findByFolio(folio)
+	            .orElseThrow(() -> new RuntimeException("Venta no encontrada con folio: " + folio));
+	}
 	public List<Venta> listarVentas() {
 		return ventaRepository.findAll();
 	}

@@ -16,6 +16,7 @@
       >
         <template v-slot:body-cell-acciones="props">
           <q-td align="center">
+            <!-- Editar -->
             <q-btn
               flat
               round
@@ -23,6 +24,15 @@
               icon="edit"
               @click="abrirEditar(props.row)"
             />
+            <!-- Pausar/Activar -->
+            <q-btn
+              flat
+              round
+              :color="props.row.activo ? 'warning' : 'positive'"
+              :icon="props.row.activo ? 'pause' : 'play_arrow'"
+              @click="toggleActivo(props.row)"
+            />
+            <!-- Eliminar -->
             <q-btn
               flat
               round
@@ -71,7 +81,7 @@
 
           <!-- Fecha de caducidad -->
           <q-input
-            v-model="productoEditar.fechaCaducidad"
+            v-model="productoEditar.caducidad"
             type="date"
             label="Fecha de caducidad"
             filled
@@ -86,7 +96,7 @@
             readonly
           />
 
-          <!-- Incremento de stock (solo positivo) -->
+          <!-- Incremento de stock -->
           <q-input
             v-model.number="stockIncremento"
             type="number"
@@ -98,14 +108,14 @@
           <!-- Imagen -->
           <div>
             <q-input
-              v-model="productoEditar.imagenUrl"
+              v-model="productoEditar.img"
               label="URL de imagen"
               filled
               clearable
             />
-            <div v-if="productoEditar.imagenUrl" class="q-mt-sm">
+            <div v-if="productoEditar.img" class="q-mt-sm">
               <q-img
-                :src="productoEditar.imagenUrl"
+                :src="productoEditar.img"
                 style="max-height: 150px; border-radius: 8px"
               />
             </div>
@@ -121,9 +131,9 @@
     <!-- Confirmación Eliminar -->
     <q-dialog v-model="dialogEliminar">
       <q-card>
-        <q-card-section class="text-h6">
-          ¿Eliminar este producto?
-        </q-card-section>
+        <q-card-section class="text-h6"
+          >¿Eliminar este producto?</q-card-section
+        >
         <q-card-actions align="right">
           <q-btn flat label="Cancelar" color="secondary" v-close-popup />
           <q-btn label="Eliminar" color="negative" @click="eliminarProducto" />
@@ -175,6 +185,12 @@ export default {
         align: "right",
       },
       {
+        name: "activo",
+        label: "Estado",
+        field: (row) => (row.activo ? "Activo" : "Pausado"),
+        align: "center",
+      },
+      {
         name: "acciones",
         label: "Acciones",
         field: "acciones",
@@ -189,7 +205,7 @@ export default {
 
     const abrirEditar = (row) => {
       productoEditar.value = { ...row };
-      stockIncremento.value = 0; // reset incremento
+      stockIncremento.value = 0;
       dialogEditar.value = true;
     };
 
@@ -239,9 +255,23 @@ export default {
       }
     };
 
-    onMounted(() => {
-      cargarProductos();
-    });
+    const toggleActivo = async (row) => {
+      try {
+        const actualizado = { ...row, activo: !row.activo };
+        await api.put(`/productos/${row.codigoBarras}`, actualizado);
+        $q.notify({
+          type: actualizado.activo ? "positive" : "warning",
+          message: actualizado.activo
+            ? "Producto activado"
+            : "Producto pausado",
+        });
+        cargarProductos();
+      } catch (err) {
+        $q.notify({ type: "negative", message: "Error al cambiar estado." });
+      }
+    };
+
+    onMounted(cargarProductos);
 
     return {
       productos,
@@ -255,6 +285,7 @@ export default {
       actualizarProducto,
       abrirEliminar,
       eliminarProducto,
+      toggleActivo,
     };
   },
 };

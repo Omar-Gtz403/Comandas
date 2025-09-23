@@ -16,7 +16,7 @@
             </div>
             <div class="text-subtitle2 text-center q-mb-lg">
               id venta:
-              <span class="text-primary text-bold">{{ idVenta }}</span>
+              <span class="text-primary text-bold">{{ folio }}</span>
             </div>
 
             <div class="text-center q-mb-md">
@@ -50,7 +50,7 @@ export default {
     const router = useRouter();
 
     const total = ref(Number(route.query.total) || 0);
-    const idVenta = ref(route.query.idVenta || null);
+    const folio = ref(route.query.folio || null);
 
     // Integración de PayPal
     onMounted(() => {
@@ -85,14 +85,12 @@ export default {
                 position: "top",
               });
 
-              if (idVenta.value) {
+              if (folio.value) {
                 try {
                   // 1️⃣ Actualizar status en backend
-                  await api.put(
-                    `/ventas/${idVenta.value}/status`,
-                    { status: 1 },
-                    { headers: { "Content-Type": "application/json" } }
-                  );
+                  await api.put(`/ventas/folio/${folio.value}/status`, {
+                    status: 1,
+                  });
 
                   $q.notify({
                     type: "positive",
@@ -103,7 +101,7 @@ export default {
                   // 2️⃣ Redirigir al ticket con QR
                   router.push({
                     path: "/ticket",
-                    query: { id: idVenta.value },
+                    query: { id: folio.value },
                   });
                 } catch (err) {
                   console.error(err);
@@ -131,7 +129,7 @@ export default {
 
     return {
       total,
-      idVenta,
+      folio,
     };
   },
 };

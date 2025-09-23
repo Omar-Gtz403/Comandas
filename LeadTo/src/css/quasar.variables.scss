@@ -12,14 +12,60 @@
 // to match your app's branding.
 // Tip: Use the "Theme Builder" on Quasar's documentation website.
 
-$primary: #132e49;
-$secondary: #26a69a;
-$accent: #9c27b0;
+// ---------------------------------------------
+// Quasar SCSS Variables - Tema Hamburguesería
+// ---------------------------------------------
 
-$dark: #1d1d1d;
-$dark-page: #121212;
+// Colores principales
+$primary: #d32f2f; // rojo intenso, apetito y acción
+$secondary: #f57c00; // naranja cálido, quesos y salsas
+$accent: #fbc02d; // amarillo mostaza, pan y cheddar
 
-$positive: #21ba45;
-$negative: #c10015;
-$info: #31ccec;
-$warning: #f2c037;
+// Colores de fondo y modo oscuro
+$dark: #3e2723; // marrón oscuro, carne a la parrilla
+$dark-page: #2e1b16; // fondo oscuro suave
+$grey-1: #fff8f0; // fondo general claro
+$grey-2: #ffe6d5; // tarjetas y secciones
+$grey-3: #ffcc99; // acentos suaves de fondo
+
+// Mensajes y estados
+$positive: #4caf50; // verde éxito
+$negative: #b71c1c; // rojo oscuro error
+$info: #0288d1; // azul info
+$warning: #ffb300; // amarillo anaranjado advertencia
+
+// Tipografía
+$text-color: #3e2723; // marrón oscuro para texto principal
+$text-color-secondary: #5d4037; // marrón medio para subtítulos
+
+// Bordes y tarjetas
+$border-radius: 12px;
+$card-box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+$card-hover-box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+
+// Botones
+$btn-border-radius: 12px;
+$btn-padding: 10px 20px;
+$btn-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+$btn-hover-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+
+// Hover y focus
+$hover-opacity: 0.85;
+$active-opacity: 0.75;
+
+// Gradientes opcionales
+$primary-gradient: linear-gradient(135deg, #d32f2f 0%, #f57c00 100%);
+$secondary-gradient: linear-gradient(135deg, #f57c00 0%, #fbc02d 100%);
+
+// Colores para etiquetas y badges
+$badge-color: $accent;
+$badge-text-color: #3e2723;
+
+// Otros
+$toolbar-background: $primary;
+$toolbar-text-color: #fff;
+$toolbar-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+
+$input-border-radius: 10px;
+$input-focus-color: $secondary;
+// amarillo anaranjado (advertencia)

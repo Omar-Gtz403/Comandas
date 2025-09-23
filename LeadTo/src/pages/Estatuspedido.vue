@@ -2,7 +2,7 @@
   <q-layout view="lHh Lpr lFf">
     <q-page-container class="q-pa-md flex flex-center">
       <div class="row justify-center full-width">
-        <div class="col-12 col-sm-10 col-md-6 col-lg-4">
+        <div class="col-12" style="max-width: 400px">
           <q-card class="q-pa-lg shadow-3">
             <!-- Título -->
             <q-card-section>
@@ -19,13 +19,13 @@
 
             <q-separator />
 
-            <!-- Entrada de ID del pedido -->
+            <!-- Entrada de folio del pedido -->
             <q-card-section class="q-gutter-md">
               <q-input
-                v-model="pedidoId"
-                label="Ingresa tu ID de pedido"
+                v-model="folio"
+                label="Ingresa tu folio de pedido"
                 outlined
-                type="number"
+                type="text"
               />
               <q-btn
                 color="primary"
@@ -39,7 +39,7 @@
             <!-- Timeline -->
             <q-card-section v-if="pedido">
               <q-timeline color="primary">
-                <!-- Etapas animadas (completadas) -->
+                <!-- Etapas completadas con animación -->
                 <transition-group name="fade-slide" tag="div">
                   <q-timeline-entry
                     v-for="(etapa, index) in etapasMostradas"
@@ -53,7 +53,7 @@
                   </q-timeline-entry>
                 </transition-group>
 
-                <!-- Etapas restantes (gris, sin animación) -->
+                <!-- Etapas restantes (gris) -->
                 <q-timeline-entry
                   v-for="(etapa, index) in etapasRestantes"
                   :key="'gris-' + index"
@@ -72,18 +72,30 @@
               <q-btn
                 color="positive"
                 label="Pagar con PayPal"
-                class="full-width"
+                class="full-width q-mb-md"
                 size="lg"
                 icon="payment"
                 :to="{
                   path: '/pagos',
-                  query: { total: pedido.total, idVenta: pedido.id },
+                  query: { total: pedido.total, folio: pedido.folio },
                 }"
               />
             </q-card-section>
 
+            <!-- Botón para ver ticket -->
+            <q-card-section v-if="pedido">
+              <q-btn
+                color="secondary"
+                label="Ver Ticket"
+                icon="receipt_long"
+                class="full-width q-mb-md"
+                size="lg"
+                :to="{ path: '/ticket', query: { folio: pedido.folio } }"
+              />
+            </q-card-section>
+
             <!-- Mensaje si no existe pedido -->
-            <q-card-section v-else-if="pedidoId && !cargando && !pedido">
+            <q-card-section v-else-if="folio && !cargando && !pedido">
               <div class="text-negative text-center">Pedido no encontrado</div>
             </q-card-section>
           </q-card>
@@ -102,7 +114,7 @@ export default {
   name: "EstatusPedido",
   setup() {
     const route = useRoute();
-    const pedidoId = ref("");
+    const folio = ref("");
     const pedido = ref(null);
     const cargando = ref(false);
 
@@ -146,10 +158,10 @@ export default {
     });
 
     const consultarPedido = async () => {
-      if (!pedidoId.value) return;
+      if (!folio.value) return;
       cargando.value = true;
       try {
-        const res = await api.get(`/ventas/${pedidoId.value}`);
+        const res = await api.get(`ventas/folio/${folio.value}`);
         pedido.value = res.data;
 
         // Animación secuencial solo para etapas completadas
@@ -169,15 +181,15 @@ export default {
     };
 
     onMounted(() => {
-      const idQuery = route.query.id;
-      if (idQuery) {
-        pedidoId.value = idQuery;
+      const folioQuery = route.query.folio;
+      if (folioQuery) {
+        folio.value = folioQuery;
         consultarPedido();
       }
     });
 
     return {
-      pedidoId,
+      folio,
       pedido,
       etapasMostradas,
       etapasRestantes,
@@ -213,15 +225,5 @@ export default {
 .fade-slide-leave-to {
   opacity: 0;
   transform: translateX(-20px);
-}
-
-/* Ajustes en móvil */
-@media (max-width: 600px) {
-  .q-timeline__entry-title {
-    font-size: 14px;
-  }
-  .q-timeline__entry-subtitle {
-    font-size: 12px;
-  }
 }
 </style>

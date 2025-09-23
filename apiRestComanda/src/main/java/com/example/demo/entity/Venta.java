@@ -1,9 +1,12 @@
 package com.example.demo.entity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -12,32 +15,37 @@ import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "ventas")
 public class Venta {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	private LocalDateTime fecha;
+    @Column(nullable = false, unique = true)
+    private String folio; // 👈 Folio único
 
-	private Double total;
-	
-	private Boolean pagado = false;
-	
-	private Integer status = 0;
-	
-	@OneToMany(mappedBy = "venta", cascade = CascadeType.ALL)
-	@JsonManagedReference
-	private List<VentaDetalle> detalles;
+    @Column(nullable = false, updatable = false, insertable = false,
+            columnDefinition = "timestamp default current_timestamp")
+    private LocalDateTime fecha;
 
-	@PrePersist
-	public void prePersist() {
-		fecha = LocalDateTime.now();
-	}
+    private Double total;
+
+    private Boolean pagado = false;
+
+    private Integer status;
+
+    @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VentaDetalle> detalles = new ArrayList<>();
+
+    @PrePersist
+    public void prePersist() {
+        if (folio == null || folio.isEmpty()) {
+            this.folio = UUID.randomUUID().toString().replace("-", "").substring(0,12).toUpperCase();
+        }
+    }
 
 	public Long getId() {
 		return id;
@@ -45,6 +53,14 @@ public class Venta {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public String getFolio() {
+		return folio;
+	}
+
+	public void setFolio(String folio) {
+		this.folio = folio;
 	}
 
 	public LocalDateTime getFecha() {
@@ -63,14 +79,6 @@ public class Venta {
 		this.total = total;
 	}
 
-	public List<VentaDetalle> getDetalles() {
-		return detalles;
-	}
-
-	public void setDetalles(List<VentaDetalle> detalles) {
-		this.detalles = detalles;
-	}
-
 	public Boolean getPagado() {
 		return pagado;
 	}
@@ -86,6 +94,15 @@ public class Venta {
 	public void setStatus(Integer status) {
 		this.status = status;
 	}
-	
 
+	public List<VentaDetalle> getDetalles() {
+		return detalles;
+	}
+
+	public void setDetalles(List<VentaDetalle> detalles) {
+		this.detalles = detalles;
+	}
+    
+    
+    
 }

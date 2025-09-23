@@ -21,7 +21,7 @@
           <!-- ID Pedido -->
           <div class="text-subtitle2 q-mb-sm">
             <strong>ID Pedido:</strong>
-            <span class="text-bold">{{ idVenta }}</span>
+            <span class="text-bold">{{ folio }}</span>
           </div>
 
           <q-separator />
@@ -84,7 +84,7 @@
         color="secondary"
         icon="track_changes"
         label="Seguir mi pedido"
-        :to="{ path: '/status', query: { id: idVenta } }"
+        :to="{ path: '/status', query: { folio: folio } }"
       />
     </div>
   </q-page>
@@ -102,9 +102,9 @@ export default {
   components: { QrcodeVue },
   setup() {
     const route = useRoute();
-    const idVenta = ref(route.query.id || null);
+    const folio = ref(route.query.folio || null);
     const productos = ref([]);
-    const qrValue = ref(idVenta.value);
+    const qrValue = ref(folio.value);
     const ticketCard = ref(null);
 
     // Total de la compra
@@ -117,9 +117,9 @@ export default {
 
     // Traer detalles de la venta
     const cargarDetalles = async () => {
-      if (!idVenta.value) return;
+      if (!folio.value) return;
       try {
-        const res = await api.get(`/ventas/${idVenta.value}/detalles`);
+        const res = await api.get(`/ventas/folio/${folio.value}/detalles`);
         productos.value = res.data;
       } catch (err) {
         console.error("Error al cargar los detalles:", err);
@@ -140,7 +140,7 @@ export default {
         });
         const link = document.createElement("a");
         link.href = canvas.toDataURL("image/png");
-        link.download = `ticket-${idVenta.value}.png`;
+        link.download = `ticket-${folio.value}.png`;
         link.click();
       } catch (err) {
         console.error("Error al generar el ticket:", err);
@@ -152,7 +152,7 @@ export default {
     });
 
     return {
-      idVenta,
+      folio,
       productos,
       total,
       qrValue,

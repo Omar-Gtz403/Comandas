@@ -30,7 +30,6 @@
       <!-- Lista de secciones -->
       <q-scroll-area style="height: calc(100% - 120px); margin-top: 120px">
         <q-list padding>
-
           <!-- 📌 Opciones para clientes -->
           <q-item clickable v-ripple @click="irA('/')">
             <q-item-section avatar>
@@ -46,13 +45,6 @@
             <q-item-section>Estatus De Mi Pedido</q-item-section>
           </q-item>
 
-          <q-item clickable v-ripple @click="irA('/ticket')">
-            <q-item-section avatar>
-              <q-icon name="confirmation_number" />
-            </q-item-section>
-            <q-item-section>Ticket</q-item-section>
-          </q-item>
-
           <!-- 📌 Opciones de administración (solo empresa) -->
           <template v-if="[1, 2].includes(usuario?.permiso)">
             <q-separator spaced />
@@ -66,7 +58,12 @@
               </q-item-section>
               <q-item-section>Registrar Producto</q-item-section>
             </q-item>
-
+            <q-item clickable v-ripple @click="irA('/scan')">
+              <q-item-section avatar>
+                <q-icon name="camera" />
+              </q-item-section>
+              <q-item-section>Escnaear Ticket</q-item-section>
+            </q-item>
             <q-item clickable v-ripple @click="irA('/pagos')">
               <q-item-section avatar>
                 <q-icon name="payment" />

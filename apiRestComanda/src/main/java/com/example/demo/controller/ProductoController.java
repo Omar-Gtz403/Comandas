@@ -2,118 +2,135 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Producto;
 import com.example.demo.repository.ProductoRepository;
-import com.example.demo.service.ProductoService;
-
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path; 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-
-
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/productos")
-@CrossOrigin(origins = "*")
+@CrossOrigin("*")
 public class ProductoController {
 
-	private final ProductoService productoService;
-	private final ProductoRepository productoRepository;
+    private static final String UPLOAD_DIR = "/var/www/comandasleadto/uploads";
+    private static final String BASE_URL = "https://comandasleadto.duckdns.org/uploads/";
 
-	// Inyectamos ambos en el constructor
-	public ProductoController(ProductoService productoService, ProductoRepository productoRepository) {
-		this.productoService = productoService;
-		this.productoRepository = productoRepository;
-	}
+    private final ProductoRepository productoRepository;
 
-	@GetMapping
-	public List<Producto> listar() {
-		System.out.println("Se consultó la API /api/productos");
-		return productoService.listarTodos();
+    @Autowired
+    public ProductoController(ProductoRepository productoRepository) {
+        this.productoRepository = productoRepository;
+    }
 
-	}
+    private void eliminarImagenAnterior(String urlImagen) {
+        if (urlImagen != null && !urlImagen.isEmpty()) {
+            try {
+                String filename = urlImagen.substring(urlImagen.lastIndexOf("/") + 1);
+                Path filePath = Paths.get(UPLOAD_DIR).resolve(filename);
+                Files.deleteIfExists(filePath);
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("⚠ No se pudo eliminar la imagen: " + urlImagen);
+            }
+        }
+    }
 
-	@PostMapping
-	public Producto crearProducto(@RequestBody Producto producto) {
-		return productoRepository.save(producto);
-	}
-	@PutMapping("/{codigoBarras}")
-	public Producto actualizarProducto(@PathVariable String codigoBarras, @RequestBody Producto producto) {
-	    return productoRepository.findById(codigoBarras).map(p -> {
-	        p.setNombreProducto(producto.getNombreProducto());
-	        p.setProveedor(producto.getProveedor());
-	        p.setDescripcion(producto.getDescripcion());
-	        p.setPrecioCompra(producto.getPrecioCompra());
-	        p.setPrecioVenta(producto.getPrecioVenta());
-	        p.setStockMin(producto.getStockMin());
-	        p.setStockMax(producto.getStockMax());
-	        p.setCaducidad(producto.getCaducidad());
-	        p.setCantidadExistente(producto.getCantidadExistente());
-	        p.setImg(producto.getImg());
-	        return productoRepository.save(p);
-	    }).orElseThrow(() -> new RuntimeException("Producto no encontrado con código: " + codigoBarras));
-	}
+    @GetMapping
+    public List<Producto> getAll() {
+        return productoRepository.findAll();
+    }
 
-	@DeleteMapping("/{codigoBarras}")
-	public void eliminarProducto(@PathVariable String codigoBarras) {
-	    if (!productoRepository.existsById(codigoBarras)) {
-	        throw new RuntimeException("Producto no encontrado con código: " + codigoBarras);
-	    }
-	    productoRepository.deleteById(codigoBarras);
-	}
-	
-	@Value("${app.upload.dir}")
-	private String uploadDir;
+    @GetMapping("/{codigo}")
+    public ResponseEntity<Producto> getById(@PathVariable String codigo) {
+        return productoRepository.findById(codigo)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 
-	@PostMapping(consumes = {"multipart/form-data"})
-	public Producto crearProductoConImagen(
-	        @RequestParam("codigoBarras") String codigoBarras,
-	        @RequestParam("nombreProducto") String nombreProducto,
-	        @RequestParam("proveedor") String proveedor,
-	        @RequestParam("descripcion") String descripcion,
-	        @RequestParam("precioCompra") Double precioCompra,
-	        @RequestParam("precioVenta") Double precioVenta,
-	        @RequestParam("stockMin") Integer stockMin,
-	        @RequestParam("stockMax") Integer stockMax,
-	        @RequestParam("caducidad") String caducidad,
-	        @RequestParam("cantidadExistente") Double cantidadExistente,
-	        @RequestParam("file") MultipartFile file
-	) throws IOException {
+    @PostMapping
+    public Producto create(@RequestBody Producto producto) {
+        // Si no viene el campo activo, lo ponemos en true
+        if (producto.getActivo() == null) {
+            producto.setActivo(true);
+        }
+        return productoRepository.save(producto);
+    }
 
-	    // Crear directorio si no existe
-	    Path uploadPath = Paths.get(uploadDir);
-	    if (!Files.exists(uploadPath)) {
-	        Files.createDirectories(uploadPath);
-	    }
+    @PostMapping("/upload")
+    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Archivo vacío"));
+        }
+        try {
+            Path uploadPath = Paths.get(UPLOAD_DIR);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+            String originalFilename = file.getOriginalFilename();
+            String filename = System.currentTimeMillis() + "_" + originalFilename;
+            Path filepath = uploadPath.resolve(filename);
 
-	    // Guardar archivo
-	    String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-	    Path path = uploadPath.resolve(fileName);
-	    Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(file.getInputStream(), filepath, StandardCopyOption.REPLACE_EXISTING);
 
-	    // Crear producto
-	    Producto producto = new Producto();
-	    producto.setCodigoBarras(codigoBarras);
-	    producto.setNombreProducto(nombreProducto);
-	    producto.setProveedor(proveedor);
-	    producto.setDescripcion(descripcion);
-	    producto.setPrecioCompra(precioCompra);
-	    producto.setPrecioVenta(precioVenta);
-	    producto.setStockMin(stockMin);
-	    producto.setStockMax(stockMax);
-	    producto.setCaducidad(caducidad);
-	    producto.setCantidadExistente(cantidadExistente);
+            String urlImagen = BASE_URL + filename;
 
-	    // Guardar solo la URL relativa
-	    producto.setImg("/uploads/" + fileName);
+            return ResponseEntity.ok(Map.of("url", urlImagen));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al guardar la imagen"));
+        }
+    }
 
-	    return productoRepository.save(producto);
-	}
+    @PutMapping("/{codigo}")
+    public ResponseEntity<Producto> update(@PathVariable String codigo, @RequestBody Producto productoDetails) {
+        return productoRepository.findById(codigo).map(producto -> {
 
+            // Eliminar imagen anterior si se cambia
+            if (producto.getImg() != null &&
+                productoDetails.getImg() != null &&
+                !producto.getImg().equals(productoDetails.getImg())) {
+                eliminarImagenAnterior(producto.getImg());
+            }
 
+            producto.setNombreProducto(productoDetails.getNombreProducto());
+            producto.setProveedor(productoDetails.getProveedor());
+            producto.setDescripcion(productoDetails.getDescripcion());
+            producto.setPrecioCompra(productoDetails.getPrecioCompra());
+            producto.setPrecioVenta(productoDetails.getPrecioVenta());
+            producto.setStockMin(productoDetails.getStockMin());
+            producto.setStockMax(productoDetails.getStockMax());
+            producto.setCaducidad(productoDetails.getCaducidad());
+            producto.setCantidadExistente(productoDetails.getCantidadExistente());
+
+            if (productoDetails.getImg() != null && !productoDetails.getImg().isEmpty()) {
+                producto.setImg(productoDetails.getImg());
+            }
+
+            producto.setCategoria(productoDetails.getCategoria());
+
+            // Si el frontend no envía activo, mantener el actual
+            producto.setActivo(productoDetails.getActivo() != null ? productoDetails.getActivo() : producto.getActivo());
+
+            return ResponseEntity.ok(productoRepository.save(producto));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{codigo}")
+    public ResponseEntity<?> delete(@PathVariable String codigo) {
+        return productoRepository.findById(codigo).map(producto -> {
+            eliminarImagenAnterior(producto.getImg());
+            productoRepository.delete(producto);
+            return ResponseEntity.noContent().build();
+        }).orElse(ResponseEntity.notFound().build());
+    }
 }
