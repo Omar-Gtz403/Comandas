@@ -47,6 +47,15 @@ const routes = [
           else next("/login");
         },
       },
+      {
+        path: "inventario",
+        component: () => import("pages/PaginaInventarios.vue"),
+        beforeEnter: (to, from, next) => {
+          const usuario = JSON.parse(localStorage.getItem("usuario"));
+          if (usuario && usuario.permiso === 1) next();
+          else next("/login");
+        },
+      },
 
       {
         path: "registrousuario",

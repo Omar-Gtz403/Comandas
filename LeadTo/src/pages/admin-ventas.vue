@@ -5,10 +5,22 @@
         <div class="text-h6 text-primary text-center">Ventas</div>
       </q-card-section>
 
+      <!-- Filtro de estatus -->
+      <q-select
+        v-model="filtroEstatus"
+        :options="filtroOptions"
+        label="Filtrar por estatus"
+        dense
+        outlined
+        emit-value
+        map-options
+        class="q-mb-md"
+      />
+
       <q-table
-        :rows="ventas"
+        :rows="ventasFiltradas"
         :columns="columns"
-        row-key="id"
+        row-key="folio"
         flat
         bordered
         separator="horizontal"
@@ -16,7 +28,7 @@
         :rows-per-page-options="[50]"
         :grid="$q.screen.lt.md"
       >
-        <!-- 🖥️ Vista tabla (desktop) -->
+        <!-- 🖥️ Vista tabla -->
         <template v-slot:body="props">
           <q-tr :props="props">
             <q-td
@@ -60,10 +72,14 @@
                     map-options
                     class="status-select"
                     @update:model-value="
-                      (val) => actualizarStatus(props.row.id, val)
+                      (val) => actualizarStatus(props.row.folio, val)
                     "
                   />
                 </div>
+              </template>
+
+              <template v-else-if="col.name === 'fecha'">
+                {{ formatFecha(props.row.fecha) }}
               </template>
 
               <template v-else>
@@ -73,11 +89,16 @@
           </q-tr>
         </template>
 
-        <!-- 📱 Vista cards en móvil -->
+        <!-- 📱 Vista cards -->
         <template v-slot:item="props">
           <q-card class="q-ma-xs q-pa-sm full-width shadow-2">
             <div class="text-subtitle1 text-primary text-bold">
-              Pedido #{{ props.row.id }}
+              Pedido #{{ props.row.folio }}
+            </div>
+
+            <!-- Fecha y hora -->
+            <div class="text-caption text-grey q-mt-xs">
+              {{ formatFecha(props.row.fecha) }}
             </div>
 
             <!-- Productos -->
@@ -117,7 +138,7 @@
                 map-options
                 class="q-ml-sm full-width"
                 @update:model-value="
-                  (val) => actualizarStatus(props.row.id, val)
+                  (val) => actualizarStatus(props.row.folio, val)
                 "
               />
             </div>
@@ -129,7 +150,7 @@
 </template>
 
 <script>
-import { ref, onMounted, getCurrentInstance } from "vue";
+import { ref, computed, onMounted, getCurrentInstance } from "vue";
 import { api } from "src/boot/axios";
 
 export default {
@@ -144,10 +165,22 @@ export default {
       { label: "Preparando", value: 2 },
       { label: "Listo para recoger", value: 3 },
       { label: "Entregado", value: 4 },
+      { label: "Cancelado", value: 5 },
     ];
 
+    const filtroOptions = [
+      { label: "Sólo pagos confirmados y preparando", value: "activos" },
+      { label: "Todos los pedidos", value: "todos" },
+      { label: "Esperando pago", value: 0 },
+      { label: "Listo para recoger", value: 3 },
+      { label: "Entregado", value: 4 },
+      { label: "Cancelados", value: 5 },
+    ];
+    const filtroEstatus = ref("activos");
+
     const columns = [
-      { name: "id", label: "ID", field: "id", align: "center" },
+      { name: "folio", label: "Folio", field: "folio", align: "center" },
+      { name: "fecha", label: "Fecha y hora", field: "fecha", align: "center" },
       {
         name: "productos",
         label: "Productos",
@@ -170,6 +203,8 @@ export default {
           return "blue";
         case 4:
           return "purple";
+        case 5:
+          return "negative";
         default:
           return "grey";
       }
@@ -180,6 +215,19 @@ export default {
       return option ? option.label : "";
     };
 
+    const formatFecha = (fecha) => {
+      const d = new Date(fecha);
+      return (
+        d.toLocaleDateString("es-MX", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }) +
+        " " +
+        d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })
+      );
+    };
+
     const getVentas = async () => {
       try {
         const res = await api.get("/ventas");
@@ -187,15 +235,45 @@ export default {
           ...venta,
           detalles: venta.detalles || [],
           status: Number(venta.status),
+          fecha: new Date(venta.fecha || Date.now()),
         }));
       } catch (error) {
         console.error("Error al obtener ventas:", error);
       }
     };
 
-    const actualizarStatus = async (id, nuevoStatus) => {
+    const ventasFiltradas = computed(() => {
+      let lista = [...ventas.value];
+
+      // Filtrado según el selector
+      if (filtroEstatus.value === "activos") {
+        lista = lista.filter((v) => [1, 2].includes(v.status));
+      } else if (filtroEstatus.value !== "todos") {
+        lista = lista.filter((v) => v.status === filtroEstatus.value);
+      }
+
+      // Ordenamiento por prioridad de estatus y fecha
+      const prioridadStatus = {
+        1: 1, // Pago confirmado
+        2: 2, // Preparando
+        3: 3, // Listo para recoger
+        4: 4, // Entregado
+        0: 5, // Esperando pago
+        5: 6, // Cancelado/eliminado
+      };
+
+      return lista.sort((a, b) => {
+        const diff = prioridadStatus[a.status] - prioridadStatus[b.status];
+        if (diff !== 0) return diff; // Primero por estatus
+        return new Date(a.fecha) - new Date(b.fecha); // Luego por fecha (más antiguo primero)
+      });
+    });
+
+    const actualizarStatus = async (folio, nuevoStatus) => {
       try {
-        await api.put(`/ventas/${id}/status`, { status: nuevoStatus });
+        await api.put(`/ventas/folio/${folio}/status`, { status: nuevoStatus });
+        const index = ventas.value.findIndex((v) => v.folio === folio);
+        if (index !== -1) ventas.value[index].status = nuevoStatus;
       } catch (error) {
         console.error("Error al actualizar status:", error);
       }
@@ -203,7 +281,7 @@ export default {
 
     const getColColor = (colName) => {
       switch (colName) {
-        case "id":
+        case "folio":
           return "bg-col-id";
         case "productos":
           return "bg-col-productos";
@@ -211,6 +289,8 @@ export default {
           return "bg-col-total";
         case "status":
           return "bg-col-status";
+        case "fecha":
+          return "bg-col-fecha";
         default:
           return "";
       }
@@ -223,10 +303,14 @@ export default {
 
     return {
       ventas,
+      ventasFiltradas,
+      filtroEstatus,
+      filtroOptions,
       columns,
       estatusOptions,
       getColor,
       getLabel,
+      formatFecha,
       actualizarStatus,
       getColColor,
     };
@@ -237,16 +321,19 @@ export default {
 <style scoped>
 /* 🎨 Colores por columna */
 .bg-col-id {
-  background-color: #ffe8a1; /* Amarillo suave */
+  background-color: #ffe8a1;
+}
+.bg-col-fecha {
+  background-color: #f0f0f0;
 }
 .bg-col-productos {
-  background-color: #e1f5fe; /* Azul claro */
+  background-color: #e1f5fe;
 }
 .bg-col-total {
-  background-color: #ffe0e0; /* Rojo muy claro */
+  background-color: #ffe0e0;
 }
 .bg-col-status {
-  background-color: #e8f5e9; /* Verde claro */
+  background-color: #e8f5e9;
 }
 
 /* General */
@@ -254,7 +341,6 @@ export default {
   vertical-align: middle;
   padding: 10px;
 }
-
 .q-table .q-th {
   background: #f8f9fa;
   font-weight: 600;

@@ -1,7 +1,11 @@
 <template>
   <q-page class="q-pa-md flex flex-center column">
-    <!-- Contenedor del ticket (lo que se descargará) -->
+    <div v-if="error" class="text-center text-negative q-mt-xl">
+      ⚠️ {{ error }}
+    </div>
+
     <div
+      v-else
       ref="ticketCard"
       class="ticket-wrapper q-pa-md"
       style="
@@ -11,53 +15,70 @@
         width: 100%;
       "
     >
-      <q-card class="q-pa-lg shadow-2" style="border-radius: 12px">
-        <!-- Título -->
+      <q-card
+        class="q-pa-lg shadow-2"
+        style="border-radius: 12px; font-family: monospace"
+      >
         <q-card-section>
-          <div class="text-h5 text-center text-primary q-mb-md">
-            🎟 Ticket de Pedido
+          <div class="text-h6 text-center text-primary q-mb-sm">
+            🍔 Restaurante Ejemplo
           </div>
-
-          <!-- ID Pedido -->
-          <div class="text-subtitle2 q-mb-sm">
-            <strong>ID Pedido:</strong>
-            <span class="text-bold">{{ folio }}</span>
+          <div class="text-subtitle2 text-center q-mb-md">
+            Calle Ficticia 123, Ciudad<br />
+            Tel: (55) 1234-5678
           </div>
 
           <q-separator />
 
-          <!-- Lista de productos -->
+          <div class="q-mt-md">
+            <div class="row justify-between q-mb-xs">
+              <div><strong>ID Pedido:</strong></div>
+              <div>{{ folio }}</div>
+            </div>
+            <div class="row justify-between q-mb-xs">
+              <div><strong>Fecha:</strong></div>
+              <div>{{ fechaPedido }}</div>
+            </div>
+          </div>
+
+          <q-separator class="q-my-xs" />
+
           <div v-if="productos.length" class="q-mt-md">
+            <div class="text-subtitle2 q-mb-sm">Productos:</div>
             <div
               v-for="item in productos"
               :key="item.nombreProducto"
               class="row justify-between items-center q-py-xs"
             >
-              <div class="col-6">
-                {{ item.nombreProducto }} x{{ item.cantidad }}
-              </div>
-              <div class="col-6 text-right">
+              <div>{{ item.nombreProducto }} x{{ item.cantidad }}</div>
+              <div>
                 ${{
-                  (
-                    Number(item.precioUnitario) * Number(item.cantidad) || 0
-                  ).toFixed(2)
+                  (Number(item.precioUnitario) * Number(item.cantidad)).toFixed(
+                    2
+                  )
                 }}
               </div>
             </div>
-            <q-separator class="q-mt-sm" />
-            <div class="row justify-between text-bold q-mt-sm">
-              <div>Total:</div>
-              <div>${{ total.toFixed(2) }}</div>
-            </div>
+          </div>
+
+          <q-separator class="q-my-xs" />
+
+          <div class="row justify-between text-h6 q-mt-sm">
+            <div>Total:</div>
+            <div>${{ total.toFixed(2) }}</div>
           </div>
 
           <q-separator class="q-my-md" />
 
-          <!-- QR con leyenda -->
+          <div class="nota-cancelacion q-pa-sm q-mb-md">
+            ⚠️ Nota: Solo podrás cancelar tu pedido si aún no ha comenzado la
+            preparación. Una vez iniciado, no se podrá cancelar.
+          </div>
+
           <div class="flex flex-center column q-mb-md">
             <qrcode-vue
               :value="qrValue"
-              :size="200"
+              :size="180"
               level="H"
               class="q-mb-sm"
             />
@@ -65,12 +86,18 @@
               Por favor, muestra este QR para la recolección de tu pedido.
             </div>
           </div>
+
+          <q-separator class="q-my-xs" />
+
+          <div class="text-center text-subtitle2 q-mt-md">
+            ¡Gracias por tu compra! 🍔
+          </div>
         </q-card-section>
       </q-card>
     </div>
 
-    <!-- Botones fuera del ticket para no interferir con html2canvas -->
     <div
+      v-if="!error"
       class="row justify-around q-gutter-sm q-mt-md"
       style="max-width: 480px; width: 100%"
     >
@@ -92,7 +119,7 @@
 
 <script>
 import { ref, onMounted, computed } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import QrcodeVue from "qrcode.vue";
 import html2canvas from "html2canvas";
 import { api } from "src/boot/axios";
@@ -102,12 +129,14 @@ export default {
   components: { QrcodeVue },
   setup() {
     const route = useRoute();
+    const router = useRouter();
     const folio = ref(route.query.folio || null);
     const productos = ref([]);
     const qrValue = ref(folio.value);
     const ticketCard = ref(null);
+    const fechaPedido = ref("");
+    const error = ref("");
 
-    // Total de la compra
     const total = computed(() =>
       productos.value.reduce(
         (acc, p) => acc + Number(p.precioUnitario) * Number(p.cantidad),
@@ -115,23 +144,47 @@ export default {
       )
     );
 
-    // Traer detalles de la venta
     const cargarDetalles = async () => {
-      if (!folio.value) return;
+      if (!folio.value) {
+        error.value = "⚠️ Folio inválido o inexistente.";
+        return;
+      }
+
       try {
-        const res = await api.get(`/ventas/folio/${folio.value}/detalles`);
-        productos.value = res.data;
+        // Traemos info completa del pedido
+        const res = await api.get(`/ventas/folio/${folio.value}`);
+
+        // Validamos que exista y esté pagado
+        if (!res.data || [0, 5].includes(res.data.status)) {
+          error.value = "⚠️ El pedido no está disponible para ver el ticket.";
+          return;
+        }
+
+        // Ahora sí traemos los detalles
+        const detalles = await api.get(`/ventas/folio/${folio.value}/detalles`);
+        if (!detalles.data.length) {
+          error.value = "⚠️ No se encontraron productos para este folio.";
+          return;
+        }
+
+        productos.value = detalles.data;
+        qrValue.value = folio.value;
+
+        const d = detalles.data[0].fecha
+          ? new Date(detalles.data[0].fecha)
+          : new Date();
+        fechaPedido.value =
+          d.toLocaleDateString("es-MX") +
+          " " +
+          d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
       } catch (err) {
         console.error("Error al cargar los detalles:", err);
+        error.value = "⚠️ No se pudo cargar el pedido. Folio inválido.";
       }
     };
 
-    // Descargar todo el ticket como imagen
     const descargarTicket = async () => {
-      if (!ticketCard.value) {
-        console.error("ticketCard aún no está disponible");
-        return;
-      }
+      if (!ticketCard.value) return;
       try {
         const canvas = await html2canvas(ticketCard.value, {
           scale: 2,
@@ -157,7 +210,9 @@ export default {
       total,
       qrValue,
       ticketCard,
+      fechaPedido,
       descargarTicket,
+      error,
     };
   },
 };
@@ -165,7 +220,7 @@ export default {
 
 <style scoped>
 .q-card {
-  font-family: "Roboto", sans-serif;
+  font-family: monospace;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 .text-primary {
@@ -177,5 +232,19 @@ export default {
 .ticket-wrapper {
   background: #fff;
   border-radius: 12px;
+}
+.nota-cancelacion {
+  background-color: #fff3e0;
+  border-left: 4px solid #ff6f00;
+  color: #bf360c;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 8px;
+  text-align: justify;
+}
+.text-negative {
+  color: red;
+  font-weight: 600;
 }
 </style>

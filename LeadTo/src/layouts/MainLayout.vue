@@ -62,7 +62,7 @@
               <q-item-section avatar>
                 <q-icon name="camera" />
               </q-item-section>
-              <q-item-section>Escnaear Ticket</q-item-section>
+              <q-item-section>Escanear Ticket</q-item-section>
             </q-item>
             <q-item clickable v-ripple @click="irA('/pagos')">
               <q-item-section avatar>

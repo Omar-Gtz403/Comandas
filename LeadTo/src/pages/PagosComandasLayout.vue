@@ -2,7 +2,11 @@
   <q-layout view="lHh Lpr lFf">
     <q-page-container>
       <div class="q-pa-md flex flex-center column">
-        <q-card class="q-pa-lg shadow-2" style="max-width: 420px; width: 100%">
+        <q-card
+          v-if="folioValido"
+          class="q-pa-lg shadow-2"
+          style="max-width: 420px; width: 100%"
+        >
           <q-card-section>
             <div class="text-h6 text-center q-mb-md">
               <q-icon name="payment" color="blue" size="28px" class="q-mr-sm" />
@@ -15,7 +19,7 @@
               </span>
             </div>
             <div class="text-subtitle2 text-center q-mb-lg">
-              id venta:
+              ID venta:
               <span class="text-primary text-bold">{{ folio }}</span>
             </div>
 
@@ -24,14 +28,18 @@
             </div>
           </q-card-section>
         </q-card>
+
+        <q-card
+          v-else
+          class="q-pa-lg shadow-2 bg-negative text-white"
+          style="max-width: 420px; width: 100%"
+        >
+          <q-card-section class="text-center">
+            ⚠️ Folio inválido o no encontrado.
+          </q-card-section>
+        </q-card>
       </div>
     </q-page-container>
-
-    <q-footer class="bg-grey-2 text-black q-py-md" elevated>
-      <q-toolbar class="justify-center">
-        <div class="text-center text-subtitle2">Pagos</div>
-      </q-toolbar>
-    </q-footer>
   </q-layout>
 </template>
 
@@ -39,7 +47,6 @@
 import { ref, onMounted } from "vue";
 import { useQuasar } from "quasar";
 import { useRoute, useRouter } from "vue-router";
-import axios from "axios";
 import { api } from "src/boot/axios";
 
 export default {
@@ -49,32 +56,38 @@ export default {
     const route = useRoute();
     const router = useRouter();
 
-    const total = ref(Number(route.query.total) || 0);
     const folio = ref(route.query.folio || null);
+    const total = ref(0);
+    const folioValido = ref(false);
 
-    // Integración de PayPal
-    onMounted(() => {
-      if (!window.paypal) {
-        const script = document.createElement("script");
-        script.src =
-          "https://www.paypal.com/sdk/js?client-id=AbIF1bjrsqCAcyqb3Hh9rBgsUX8NArLpGhzSRMdLtJHUg531mh9Y9Fme8RjJU07ncNI7z4mcjlY8jQrw&currency=MXN";
-        script.onload = renderPayPalButton;
-        document.body.appendChild(script);
-      } else {
-        renderPayPalButton();
+    const cargarPedido = async () => {
+      if (!folio.value) {
+        folioValido.value = false;
+        return;
       }
-    });
+      try {
+        const res = await api.get(`/ventas/folio/${folio.value}`);
+        if (res.data && res.data.status === 0) {
+          // pendiente de pago
+          folioValido.value = true;
+          total.value = Number(res.data.total) || 0;
+        } else {
+          folioValido.value = false;
+        }
+      } catch (err) {
+        console.error(err);
+        folioValido.value = false;
+      }
+    };
 
-    function renderPayPalButton() {
+    const renderPayPalButton = () => {
+      if (!window.paypal || !folioValido.value) return;
+
       window.paypal
         .Buttons({
           createOrder: (data, actions) => {
             return actions.order.create({
-              purchase_units: [
-                {
-                  amount: { value: total.value.toFixed(2) },
-                },
-              ],
+              purchase_units: [{ amount: { value: total.value.toFixed(2) } }],
             });
           },
           onApprove: (data, actions) => {
@@ -85,36 +98,26 @@ export default {
                 position: "top",
               });
 
-              if (folio.value) {
-                try {
-                  // 1️⃣ Actualizar status en backend
-                  await api.put(`/ventas/folio/${folio.value}/status`, {
-                    status: 1,
-                  });
-
-                  $q.notify({
-                    type: "positive",
-                    message: "El pedido se actualizó como pagado ✅",
-                    position: "top",
-                  });
-
-                  // 2️⃣ Redirigir al ticket con QR
-                  router.push({
-                    path: "/ticket",
-                    query: { id: folio.value },
-                  });
-                } catch (err) {
-                  console.error(err);
-                  $q.notify({
-                    type: "negative",
-                    message: "No se pudo actualizar el estado del pedido ❌",
-                    position: "top",
-                  });
-                }
+              try {
+                await api.put(`/ventas/folio/${folio.value}/status`, {
+                  status: 1,
+                });
+                $q.notify({
+                  type: "positive",
+                  message: "El pedido se actualizó como pagado ✅",
+                  position: "top",
+                });
+                router.push({ path: "/ticket", query: { folio: folio.value } });
+              } catch (err) {
+                console.error(err);
+                $q.notify({
+                  type: "negative",
+                  message: "No se pudo actualizar el estado del pedido ❌",
+                  position: "top",
+                });
               }
             });
           },
-
           onError: (err) => {
             console.error(err);
             $q.notify({
@@ -125,12 +128,24 @@ export default {
           },
         })
         .render("#paypal-button-container");
-    }
-
-    return {
-      total,
-      folio,
     };
+
+    onMounted(async () => {
+      await cargarPedido();
+      if (folioValido.value) {
+        if (!window.paypal) {
+          const script = document.createElement("script");
+          script.src =
+            "https://www.paypal.com/sdk/js?client-id=AbIF1bjrsqCAcyqb3Hh9rBgsUX8NArLpGhzSRMdLtJHUg531mh9Y9Fme8RjJU07ncNI7z4mcjlY8jQrw&currency=MXN";
+          script.onload = renderPayPalButton;
+          document.body.appendChild(script);
+        } else {
+          renderPayPalButton();
+        }
+      }
+    });
+
+    return { folio, total, folioValido };
   },
 };
 </script>
