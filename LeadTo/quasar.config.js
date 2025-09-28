@@ -8,13 +8,13 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js
 
-const ESLintPlugin = require("eslint-webpack-plugin");
-const fs = require("fs");
-const path = require("path");
+import ESLintPlugin from "eslint-webpack-plugin";
+import fs from "fs";
+import path from "path";
 
-const { configure } = require("quasar/wrappers");
+import { configure } from "quasar/wrappers";
 
-module.exports = configure(function (ctx) {
+export default configure(function (ctx) {
   return {
     supportTS: false,
 
@@ -37,10 +37,10 @@ module.exports = configure(function (ctx) {
 
     build: {
       vueRouterMode: "history", // available values: 'hash', 'history'
-      chainWebpack(chain) {
+      chainWebpackPreload(chain) {
         chain
           .plugin("eslint-webpack-plugin")
-          .use(ESLintPlugin, [{ extensions: ["js", "vue"] }]);
+          .use(ESLintPlugin, [{ extensions: ["js"] }]);
       },
     },
     meta: {

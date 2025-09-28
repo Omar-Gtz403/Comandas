@@ -7,9 +7,14 @@ const routes = [
       { path: "status", component: () => import("pages/Estatuspedido.vue") },
       { path: "ticket", component: () => import("pages/Ticket.vue") },
       { path: "scan", component: () => import("pages/ScanQR.vue") },
+      { path: "dashboard", component: () => import("pages/AppDashboard.vue") },
       {
         path: "pagos",
         component: () => import("pages/PagosComandasLayout.vue"),
+      },
+      {
+        path: "dashboard",
+        component: () => import("pages/AppDashboard.vue"),
       },
       {
         path: "scan",
