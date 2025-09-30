@@ -47,6 +47,12 @@ public class CategoriaController {
             return ResponseEntity.ok(categoriaRepository.save(categoria));
         }).orElse(ResponseEntity.notFound().build());
     }
-
+    @PutMapping("/{id}/toggle")
+    public ResponseEntity<Categoria> toggleActivo(@PathVariable Long id) {
+        return categoriaRepository.findById(id).map(categoria -> {
+            categoria.setActivo(!categoria.isActivo());
+            return ResponseEntity.ok(categoriaRepository.save(categoria));
+        }).orElse(ResponseEntity.notFound().build());
+    }
    
 }

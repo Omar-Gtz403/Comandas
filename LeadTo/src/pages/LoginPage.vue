@@ -81,11 +81,34 @@ const credenciales = ref({
 const recordar = ref(false);
 
 const login = async () => {
+  if (!credenciales.value.nombreUsuario || !credenciales.value.password) {
+    Notify.create({
+      type: "warning",
+      message: "Por favor completa todos los campos",
+      position: "top",
+      timeout: 2500,
+    });
+    return;
+  }
+
   try {
     const { data } = await api.post("/auth/login", credenciales.value);
 
+    // Verifica si el usuario existe y tiene permiso
+    if (!data || !data.permiso) {
+      Notify.create({
+        type: "negative",
+        message: "Usuario o contraseña incorrectos",
+        position: "top",
+        timeout: 2500,
+      });
+      return;
+    }
+
+    // Guardar usuario en localStorage
     localStorage.setItem("usuario", JSON.stringify(data));
 
+    // Mensaje de bienvenida
     Notify.create({
       type: "positive",
       message: `¡Bienvenido ${data.nombreUsuario}!`,
@@ -93,7 +116,12 @@ const login = async () => {
       timeout: 2500,
     });
 
-    router.push("/productos");
+    // Redirigir según permiso
+    if (data.permiso === 1) {
+      router.push("/productos"); // admin
+    } else {
+      router.push("/"); // usuario público
+    }
   } catch (err) {
     console.error("Error login:", err);
 
@@ -110,13 +138,13 @@ const login = async () => {
 <style lang="scss" scoped>
 .login-page {
   min-height: 100vh;
-  background: $body-background; // fondo claro definido en variables
+  background: $body-background; // fondo definido en variables
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* Botón principal simple y tradicional */
+/* Botón principal */
 .btn-principal {
   background: $primary !important;
   color: #fff;

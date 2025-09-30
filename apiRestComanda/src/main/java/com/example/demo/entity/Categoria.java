@@ -12,8 +12,9 @@ public class Categoria {
 
     @Column(unique = true, nullable = false, length = 100)
     private String nombre;
-
-    // ===== Getters & Setters =====
+    
+    private boolean activo = true;
+    
     public Long getId() {
         return id;
     }
@@ -29,4 +30,13 @@ public class Categoria {
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
+
+	public boolean isActivo() {
+		return activo;
+	}
+
+	public void setActivo(boolean activo) {
+		this.activo = activo;
+	}
+    
 }

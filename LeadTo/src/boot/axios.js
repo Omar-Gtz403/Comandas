@@ -2,7 +2,7 @@ import { boot } from "quasar/wrappers";
 import axios from "axios";
 
 const api = axios.create({
-  // baseURL: "https://comandasleadto.duckdns.org/api",
+  //baseURL: "https://comandasleadto.duckdns.org/api",
   baseURL: "http://localhost:8082/api",
 });
 api.interceptors.request.use((config) => {

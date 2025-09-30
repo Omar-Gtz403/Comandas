@@ -35,6 +35,15 @@ const routes = [
         },
       },
       {
+        path: "categorias",
+        component: () => import("pages/CategoriaCrear.vue"),
+        beforeEnter: (to, from, next) => {
+          const usuario = JSON.parse(localStorage.getItem("usuario"));
+          if (usuario && usuario.permiso === 1) next();
+          else next("/login");
+        },
+      },
+      {
         path: "pedidos",
         component: () => import("pages/admin-ventas.vue"),
         beforeEnter: (to, from, next) => {

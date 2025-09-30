@@ -1,23 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-page-container class="bg-grey-2">
-      <!-- Toolbar -->
-      <q-toolbar class="q-px-md q-py-sm bg-primary text-white shadow-2">
-        <q-toolbar-title class="text-h5 text-center text-uppercase">
-          Menú
-        </q-toolbar-title>
-        <q-btn flat round size="lg" icon="shopping_cart" @click="abrirCarrito">
-          <q-badge
-            v-if="totalItems > 0"
-            color="red"
-            floating
-            transparent
-            :label="totalItems"
-            style="font-size: 13px; padding: 3px 6px"
-          />
-        </q-btn>
-      </q-toolbar>
-
       <!-- Menú agrupado por categorías -->
       <div
         v-for="(productos, categoria) in productosPorCategoria"
@@ -70,6 +53,20 @@
           </div>
         </q-infinite-scroll>
       </div>
+
+      <!-- Botón flotante fijo de carrito -->
+      <q-page-sticky position="bottom-right" :offset="[18, 18]">
+        <q-btn fab icon="shopping_cart" color="primary" @click="abrirCarrito">
+          <q-badge
+            v-if="totalItems > 0"
+            color="red"
+            floating
+            transparent
+            :label="totalItems"
+            style="font-size: 13px; padding: 3px 6px"
+          />
+        </q-btn>
+      </q-page-sticky>
 
       <!-- Carrito -->
       <q-dialog v-model="dialogVisible">
@@ -185,9 +182,16 @@ export default {
       }
     };
 
-    // Agrupar productos activos por categoría
+    // Agrupar productos activos por categoría con orden fijo
     const productosPorCategoria = computed(() => {
-      return menu.value
+      const categoriasOrden = [
+        "Humburguesas",
+        "Hot Dogs",
+        "Postres",
+        "Bebidas",
+      ];
+
+      const agrupados = menu.value
         .filter((producto) => producto.activo) // solo activos
         .reduce((acc, producto) => {
           const categoria = producto.categoria?.nombre || "Sin categoría";
@@ -195,13 +199,25 @@ export default {
           acc[categoria].push(producto);
           return acc;
         }, {});
+
+      // Reordenar según categoriasOrden
+      const resultado = {};
+      categoriasOrden.forEach((cat) => {
+        if (agrupados[cat]) resultado[cat] = agrupados[cat];
+      });
+
+      // Agregar categorías extra al final
+      for (const cat in agrupados) {
+        if (!resultado[cat]) resultado[cat] = agrupados[cat];
+      }
+
+      return resultado;
     });
 
     // Productos a mostrar (control de infinite scroll) por categoría
     const productosAMostrarPorCategoria = computed(() => {
       const result = {};
       for (const cat in productosPorCategoria.value) {
-        // Slice según la cantidad visible, evita dejar espacios
         result[cat] = productosPorCategoria.value[cat].slice(
           0,
           visiblesPorCategoria.value[cat] ||
@@ -243,41 +259,41 @@ export default {
     const abrirCarrito = () => (dialogVisible.value = true);
 
     // Confirmar pedido
- const confirmarPedido = async () => {
-  try {
-    const venta = {
-      total: totalCarrito.value,
-      status: 0, // <<--- agregar esto
-      detalles: carrito.value.map((item) => ({
-        codigoBarras: item.codigoBarras,
-        cantidad: item.cantidad,
-        precioUnitario: item.precioVenta,
-      })),
+    const confirmarPedido = async () => {
+      try {
+        const venta = {
+          total: totalCarrito.value,
+          status: 0,
+          detalles: carrito.value.map((item) => ({
+            codigoBarras: item.codigoBarras,
+            cantidad: item.cantidad,
+            precioUnitario: item.precioVenta,
+          })),
+        };
+
+        const res = await api.post("/ventas", venta);
+        const folio = res.data.folio;
+        const total = res.data.total || totalCarrito.value;
+
+        carrito.value = [];
+        dialogVisible.value = false;
+
+        $q.notify({
+          type: "positive",
+          message: "Pedido registrado correctamente",
+          position: "top",
+        });
+
+        router.push({ path: "/pagos", query: { folio, total } });
+      } catch (err) {
+        console.error(err);
+        $q.notify({
+          type: "negative",
+          message: "Error al registrar el pedido",
+          position: "top",
+        });
+      }
     };
-
-    const res = await api.post("/ventas", venta);
-    const folio = res.data.folio;
-    const total = res.data.total || totalCarrito.value;
-
-    carrito.value = [];
-    dialogVisible.value = false;
-
-    $q.notify({
-      type: "positive",
-      message: "Pedido registrado correctamente",
-      position: "top",
-    });
-
-    router.push({ path: "/pagos", query: { folio, total } });
-  } catch (err) {
-    console.error(err);
-    $q.notify({
-      type: "negative",
-      message: "Error al registrar el pedido",
-      position: "top",
-    });
-  }
-};
 
     // Computed para total de carrito
     const totalCarrito = computed(() =>

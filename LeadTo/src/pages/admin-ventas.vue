@@ -245,17 +245,32 @@ export default {
     const ventasFiltradas = computed(() => {
       let lista = [...ventas.value];
 
+      // Fecha de hoy
+      const hoy = new Date();
+      const inicioHoy = new Date(
+        hoy.getFullYear(),
+        hoy.getMonth(),
+        hoy.getDate()
+      );
+      const finHoy = new Date(inicioHoy);
+      finHoy.setDate(finHoy.getDate() + 1);
+
       // Filtrado según el selector
       if (filtroEstatus.value === "activos") {
-        lista = lista.filter((v) => [1, 2].includes(v.status));
+        lista = lista.filter(
+          (v) =>
+            [1, 2].includes(v.status) &&
+            v.fecha >= inicioHoy &&
+            v.fecha < finHoy // sólo pedidos de hoy
+        );
       } else if (filtroEstatus.value !== "todos") {
         lista = lista.filter((v) => v.status === filtroEstatus.value);
       }
 
       // Ordenamiento por prioridad de estatus y fecha
       const prioridadStatus = {
-        1: 1, // Pago confirmado
-        2: 2, // Preparando
+        1: 1, // Pago confirmado (primero)
+        2: 2, // Preparando (después)
         3: 3, // Listo para recoger
         4: 4, // Entregado
         0: 5, // Esperando pago
