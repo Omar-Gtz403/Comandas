@@ -1,7 +1,7 @@
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-page-container class="bg-grey-2">
-      <!-- Menú agrupado por categorías -->
+      <!-- Menú agrupado por categorías activas y ordenadas -->
       <div
         v-for="(productos, categoria) in productosPorCategoria"
         :key="categoria"
@@ -70,7 +70,7 @@
 
       <!-- Carrito -->
       <q-dialog v-model="dialogVisible">
-        <q-card style="min-width: 450px">
+        <q-card :style="carritoDialogStyle">
           <q-card-section>
             <div class="text-h6 text-center">Carrito de Compras</div>
           </q-card-section>
@@ -85,12 +85,18 @@
                 :key="i"
                 class="q-mb-sm row items-center justify-between"
               >
-                <div class="col-8">
-                  {{ item.nombreProducto }} - ${{
-                    (item.precioVenta * item.cantidad).toFixed(2)
-                  }}
+                <div class="col-7 col-sm-8">
+                  <div class="text-subtitle2">{{ item.nombreProducto }}</div>
+                  <div class="text-caption text-grey-6">
+                    ${{ item.precioVenta.toFixed(2) }} x {{ item.cantidad }} =
+                    <strong
+                      >${{
+                        (item.precioVenta * item.cantidad).toFixed(2)
+                      }}</strong
+                    >
+                  </div>
                 </div>
-                <div class="col-4 row items-center justify-end">
+                <div class="col-5 col-sm-4 row items-center justify-end">
                   <q-btn
                     dense
                     flat
@@ -143,7 +149,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useQuasar, Notify } from "quasar";
 import { api } from "src/boot/axios";
 import { useRouter } from "vue-router";
@@ -155,26 +161,37 @@ export default {
     const $q = useQuasar();
 
     const menu = ref([]);
-    const carrito = ref([]);
+    const carrito = ref(JSON.parse(localStorage.getItem("carrito")) || []);
     const dialogVisible = ref(false);
-    const visiblesPorCategoria = ref({}); // cantidad visible por categoría
+    const visiblesPorCategoria = ref({});
 
-    // Cargar menú desde backend
+    // Guardar carrito en localStorage
+    watch(
+      carrito,
+      (newVal) => {
+        localStorage.setItem("carrito", JSON.stringify(newVal));
+      },
+      { deep: true }
+    );
+
+    // Cargar menú desde API
     const getMenu = async () => {
       try {
         const res = await api.get("/productos");
         menu.value = res.data;
 
-        // Inicializamos visiblesPorCategoria con 5 productos por categoría
-        const categoriasUnicas = [
+        // Solo categorías activas y sin Insumos (id=5)
+        const categoriasActivas = [
           ...new Set(
             menu.value
-              .filter((p) => p.activo) // solo activos
-              .map((p) => p.categoria?.nombre || "Sin categoría")
+              .filter(
+                (p) => p.activo && p.categoria?.activo && p.categoria?.id !== 5
+              )
+              .map((p) => p.categoria.nombre)
           ),
         ];
 
-        categoriasUnicas.forEach((cat) => {
+        categoriasActivas.forEach((cat) => {
           visiblesPorCategoria.value[cat] = 5;
         });
       } catch (err) {
@@ -182,39 +199,20 @@ export default {
       }
     };
 
-    // Agrupar productos activos por categoría con orden fijo
+    // Agrupar y ordenar productos por categoría, excluyendo Insumos
     const productosPorCategoria = computed(() => {
-      const categoriasOrden = [
-        "Humburguesas",
-        "Hot Dogs",
-        "Postres",
-        "Bebidas",
-      ];
-
-      const agrupados = menu.value
-        .filter((producto) => producto.activo) // solo activos
-        .reduce((acc, producto) => {
-          const categoria = producto.categoria?.nombre || "Sin categoría";
-          if (!acc[categoria]) acc[categoria] = [];
-          acc[categoria].push(producto);
-          return acc;
-        }, {});
-
-      // Reordenar según categoriasOrden
-      const resultado = {};
-      categoriasOrden.forEach((cat) => {
-        if (agrupados[cat]) resultado[cat] = agrupados[cat];
-      });
-
-      // Agregar categorías extra al final
-      for (const cat in agrupados) {
-        if (!resultado[cat]) resultado[cat] = agrupados[cat];
-      }
-
-      return resultado;
+      const agrupados = {};
+      menu.value
+        .filter((p) => p.activo && p.categoria?.activo && p.categoria?.id !== 5)
+        .sort((a, b) => a.categoria.orden - b.categoria.orden)
+        .forEach((p) => {
+          const cat = p.categoria?.nombre || "Sin categoría";
+          if (!agrupados[cat]) agrupados[cat] = [];
+          agrupados[cat].push(p);
+        });
+      return agrupados;
     });
 
-    // Productos a mostrar (control de infinite scroll) por categoría
     const productosAMostrarPorCategoria = computed(() => {
       const result = {};
       for (const cat in productosPorCategoria.value) {
@@ -227,7 +225,6 @@ export default {
       return result;
     });
 
-    // Cargar más productos al hacer scroll
     const loadMore = (index, done) => {
       for (const cat in visiblesPorCategoria.value) {
         visiblesPorCategoria.value[cat] += 5;
@@ -235,7 +232,6 @@ export default {
       done();
     };
 
-    // Funciones de carrito
     const agregarAlCarrito = (item) => {
       const index = carrito.value.findIndex(
         (p) => p.codigoBarras === item.codigoBarras
@@ -250,7 +246,7 @@ export default {
       });
     };
 
-    const eliminarDelCarrito = (index) => carrito.value.splice(index, 1);
+    const eliminarDelCarrito = (i) => carrito.value.splice(i, 1);
     const incrementarCantidad = (i) => (carrito.value[i].cantidad += 1);
     const reducirCantidad = (i) =>
       carrito.value[i].cantidad > 1
@@ -258,7 +254,6 @@ export default {
         : carrito.value.splice(i, 1);
     const abrirCarrito = () => (dialogVisible.value = true);
 
-    // Confirmar pedido
     const confirmarPedido = async () => {
       try {
         const venta = {
@@ -273,8 +268,6 @@ export default {
 
         const res = await api.post("/ventas", venta);
         const folio = res.data.folio;
-        const total = res.data.total || totalCarrito.value;
-
         carrito.value = [];
         dialogVisible.value = false;
 
@@ -283,8 +276,10 @@ export default {
           message: "Pedido registrado correctamente",
           position: "top",
         });
-
-        router.push({ path: "/pagos", query: { folio, total } });
+        router.push({
+          path: "/pagos",
+          query: { folio, total: totalCarrito.value },
+        });
       } catch (err) {
         console.error(err);
         $q.notify({
@@ -295,7 +290,6 @@ export default {
       }
     };
 
-    // Computed para total de carrito
     const totalCarrito = computed(() =>
       carrito.value.reduce(
         (total, item) => total + item.precioVenta * item.cantidad,
@@ -307,9 +301,12 @@ export default {
       carrito.value.reduce((acc, item) => acc + item.cantidad, 0)
     );
 
-    onMounted(() => {
-      getMenu();
-    });
+    const carritoDialogStyle = computed(() => ({
+      minWidth: "350px",
+      maxWidth: "90vw",
+    }));
+
+    onMounted(() => getMenu());
 
     return {
       menu,
@@ -326,6 +323,7 @@ export default {
       totalCarrito,
       totalItems,
       loadMore,
+      carritoDialogStyle,
     };
   },
 };

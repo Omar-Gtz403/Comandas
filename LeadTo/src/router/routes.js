@@ -12,10 +12,7 @@ const routes = [
         path: "pagos",
         component: () => import("pages/PagosComandasLayout.vue"),
       },
-      {
-        path: "dashboard",
-        component: () => import("pages/AppDashboard.vue"),
-      },
+
       {
         path: "scan",
         component: () => import("pages/ScanQR.vue"),

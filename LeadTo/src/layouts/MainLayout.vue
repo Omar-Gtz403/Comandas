@@ -34,7 +34,12 @@
             <div class="text-subtitle2 text-grey q-px-md q-mb-sm">
               Administración
             </div>
-
+            <q-item clickable v-ripple @click="irA('/dashboard')">
+              <q-item-section avatar
+                ><q-icon name="dashboard"
+              /></q-item-section>
+              <q-item-section>Dashboard</q-item-section>
+            </q-item>
             <q-item clickable v-ripple @click="irA('/registro')">
               <q-item-section avatar><q-icon name="add_box" /></q-item-section>
               <q-item-section>Registrar Producto</q-item-section>
@@ -58,11 +63,15 @@
               /></q-item-section>
               <q-item-section>Pedidos</q-item-section>
             </q-item>
-            <q-item clickable v-ripple @click="irA('/dashboard')">
+            <q-item clickable v-ripple @click="irA('/categorias')">
+              <q-item-section avatar><q-icon name="category" /></q-item-section>
+              <q-item-section>Categorias</q-item-section>
+            </q-item>
+            <q-item clickable v-ripple @click="irA('/inventario')">
               <q-item-section avatar
-                ><q-icon name="dashboard"
+                ><q-icon name="inventory"
               /></q-item-section>
-              <q-item-section>Dashboard</q-item-section>
+              <q-item-section>Insumos</q-item-section>
             </q-item>
             <q-separator spaced />
           </template>

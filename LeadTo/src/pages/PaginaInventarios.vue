@@ -11,13 +11,13 @@
           ref="compraForm"
           class="q-gutter-md"
         >
-          <!-- Producto -->
+          <!-- Producto solo Insumos -->
           <q-select
             v-model="compra.producto"
-            :options="productos"
+            :options="productosInsumos"
             option-label="nombreProducto"
             option-value="codigoBarras"
-            label="Producto"
+            label="Producto (Insumos)"
             emit-value
             map-options
             outlined
@@ -103,7 +103,7 @@
 </template>
 
 <script setup>
-defineOptions({ name: "InventarioPage" }); // Nombre multi-word para Vue Router
+defineOptions({ name: "InventarioPage" });
 
 import { ref, reactive, computed, onMounted } from "vue";
 import { api } from "src/boot/axios";
@@ -117,6 +117,11 @@ const compra = reactive({
   factorConversion: 1,
   precioUnitario: 0,
 });
+
+// Computed que filtra solo productos con categoria.id = 5
+const productosInsumos = computed(() =>
+  productos.value.filter((p) => p.categoria && p.categoria.id === 5)
+);
 
 const cantidadEquivalente = computed(
   () => compra.cantidadCompra * compra.factorConversion
