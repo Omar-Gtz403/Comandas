@@ -1,16 +1,18 @@
 package com.example.demo.controller;
 
+import java.util.Map;
+import java.util.Optional;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.entity.Usuario;
+import com.example.demo.entity.Rol;
 import com.example.demo.service.UsuarioService;
-
-import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "*")
 public class AuthController {
 
     private final UsuarioService usuarioService;
@@ -21,23 +23,31 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<Usuario> register(@RequestBody Usuario usuario) {
-        return ResponseEntity.ok(usuarioService.registrar(usuario));
+        Usuario nuevo = usuarioService.registrar(usuario);
+        return ResponseEntity.ok(nuevo);
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
-        String nombreUsuario = body.get("nombreUsuario");
-        String password = body.get("password");
+        Optional<Usuario> usuario = usuarioService.login(body.get("nombreUsuario"), body.get("password"));
 
-        Optional<Usuario> usuario = usuarioService.login(nombreUsuario, password);
         if (usuario.isPresent()) {
-            if (usuario.get().getPermiso() == 1) {
-                return ResponseEntity.ok(usuario.get());
-            } else {
-                return ResponseEntity.status(403).body("No tienes permisos administrativos");
+            Usuario u = usuario.get();
+
+            if (u.getRol() == null) {
+                return ResponseEntity.status(403).body("El usuario no tiene un rol asignado");
             }
+
+            // 🔹 Evitar enviar la contraseña
+            u.setPassword(null);
+
+            // 🔹 Retornar el usuario con su rol y permisos incluidos
+            Rol rol = u.getRol();
+            rol.getPermisos().size(); // Fuerza la carga de permisos si son LAZY
+
+            return ResponseEntity.ok(u);
         }
+
         return ResponseEntity.status(401).body("Usuario o contraseña incorrectos");
     }
 }
-

@@ -1,65 +1,78 @@
 <template>
-  <q-page
-    class="flex flex-center bg-gradient-to-r from-blue-500 to-indigo-600 q-pa-md"
-  >
-    <div
-      class="w-full max-w-md bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-8 transition-all duration-300 hover:scale-[1.01]"
-    >
-      <h2
-        class="text-3xl font-extrabold text-center text-gray-800 mb-8 tracking-tight"
-      >
-        Registrar Usuario
-      </h2>
+  <div class="login-page flex flex-center q-pa-md">
+    <q-card class="q-pa-lg shadow-10 full-width" style="max-width: 400px">
+      <!-- Header -->
+      <q-card-section class="text-center">
+        <q-avatar size="80px" class="bg-primary text-white q-mx-auto q-mb-sm">
+          <q-icon name="person_add" size="48px" />
+        </q-avatar>
+        <div class="text-h5 text-primary q-mt-sm">Registrar Usuario</div>
+        <div class="text-subtitle2 text-color-secondary">
+          Crea una nueva cuenta de acceso
+        </div>
+      </q-card-section>
 
-      <q-form @submit="registrarUsuario" class="q-gutter-md">
+      <q-separator spaced />
+
+      <!-- Formulario -->
+      <q-form @submit.prevent="registrarUsuario" class="q-gutter-md">
         <q-input
+          filled
+          dense
           v-model="usuario.nombreUsuario"
           label="Nombre de Usuario"
-          outlined
-          dense
-          standout="bg-blue-50 text-black"
-          class="rounded-lg"
+          type="text"
+          autocomplete="username"
           color="primary"
+          label-color="primary"
+          prepend-icon="person"
           required
         />
 
         <q-input
-          v-model="usuario.password"
-          type="password"
-          label="Contraseña"
-          outlined
+          filled
           dense
-          standout="bg-blue-50 text-black"
-          class="rounded-lg"
+          v-model="usuario.password"
+          label="Contraseña"
+          type="password"
+          autocomplete="new-password"
           color="primary"
+          label-color="primary"
+          prepend-icon="lock"
           required
         />
 
         <q-select
-          v-model="usuario.permiso"
-          :options="permisos"
-          label="Permiso"
-          outlined
+          filled
           dense
-          standout="bg-blue-50 text-black"
-          class="rounded-lg"
+          v-model="usuario.rolId"
+          :options="roles"
+          label="Rol del Usuario"
           color="primary"
+          label-color="primary"
+          emit-value
+          map-options
+          prepend-icon="verified_user"
+          required
         />
 
         <q-btn
           label="Registrar"
           type="submit"
           color="primary"
-          class="w-full py-3 text-lg font-bold rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
+          class="full-width"
+          icon="how_to_reg"
+          unelevated
         />
       </q-form>
-    </div>
-  </q-page>
+    </q-card>
+  </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { Notify } from "quasar";
 import { api } from "boot/axios";
 
 const router = useRouter();
@@ -67,23 +80,77 @@ const router = useRouter();
 const usuario = ref({
   nombreUsuario: "",
   password: "",
-  permiso: 1,
+  rolId: null,
 });
 
-const permisos = [
-  { label: "Administrador", value: 1 },
-  { label: "Usuario", value: 0 },
-];
+const roles = ref([]);
+
+onMounted(async () => {
+  try {
+    const { data } = await api.get("/roles");
+    roles.value = data.map((r) => ({
+      label: r.nombre,
+      value: r.id,
+    }));
+  } catch (err) {
+    console.error("Error cargando roles:", err);
+    Notify.create({
+      type: "negative",
+      message: "No se pudieron cargar los roles",
+    });
+  }
+});
 
 const registrarUsuario = async () => {
+  if (
+    !usuario.value.nombreUsuario ||
+    !usuario.value.password ||
+    !usuario.value.rolId
+  ) {
+    return Notify.create({
+      type: "warning",
+      message: "Completa todos los campos",
+      position: "top",
+    });
+  }
+
   try {
-    await api.post("/auth/register", usuario.value);
-    $q.notify({ type: "positive", message: "Usuario registrado con éxito" });
-    usuario.value = { nombreUsuario: "", password: "", permiso: 1 };
-    router.push("/productos");
+    await api.post("/auth/register", {
+      nombreUsuario: usuario.value.nombreUsuario,
+      password: usuario.value.password,
+      rol: { id: usuario.value.rolId },
+    });
+
+    Notify.create({
+      type: "positive",
+      message: "Usuario registrado con éxito",
+      position: "top",
+    });
+
+    usuario.value = { nombreUsuario: "", password: "", rolId: null };
+    router.push("/login");
   } catch (err) {
-    console.error("Error registrando usuario:", err);
-    $q.notify({ type: "negative", message: "Error al registrar usuario" });
+    console.error(err);
+    Notify.create({
+      type: "negative",
+      message: err.response?.data?.message || "Error al registrar usuario",
+      position: "top",
+    });
   }
 };
 </script>
+
+<style lang="scss" scoped>
+.login-page {
+  min-height: 100vh;
+  background: $body-background;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-link {
+  color: $secondary;
+  font-weight: 500;
+}
+</style>

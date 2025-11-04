@@ -10,14 +10,16 @@
           <q-card-section>
             <div class="text-h6 text-center q-mb-md">
               <q-icon name="payment" color="blue" size="28px" class="q-mr-sm" />
-              Pago con PayPal
+              Métodos de Pago
             </div>
+
             <div class="text-subtitle2 text-center q-mb-lg">
               Total a pagar:
               <span class="text-primary text-bold">
                 ${{ total.toFixed(2) }}
               </span>
             </div>
+
             <div class="text-subtitle2 text-center q-mb-lg">
               ID venta:
               <span class="text-primary text-bold">{{ folio }}</span>
@@ -25,6 +27,17 @@
 
             <div class="text-center q-mb-md">
               <div id="paypal-button-container"></div>
+            </div>
+            <div v-if="[1, 2].includes(usuario?.permiso)" class="q-mt-md">
+              <q-separator spaced />
+              <div class="text-center q-mb-sm text-bold">Pago en efectivo</div>
+              <q-btn
+                color="green"
+                icon="attach_money"
+                label="Marcar como pagado en efectivo"
+                class="full-width"
+                @click="pagarEfectivo"
+              />
             </div>
           </q-card-section>
         </q-card>
@@ -60,6 +73,9 @@ export default {
     const total = ref(0);
     const folioValido = ref(false);
 
+    // Usuario desde localStorage
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+
     const cargarPedido = async () => {
       if (!folio.value) {
         folioValido.value = false;
@@ -77,6 +93,26 @@ export default {
       } catch (err) {
         console.error(err);
         folioValido.value = false;
+      }
+    };
+
+    // Pago en efectivo
+    const pagarEfectivo = async () => {
+      try {
+        await api.put(`/ventas/folio/${folio.value}/status`, { status: 1 });
+        $q.notify({
+          type: "positive",
+          message: "El pedido se actualizó como pagado en efectivo ✅",
+          position: "top",
+        });
+        router.push({ path: "/ticket", query: { folio: folio.value } });
+      } catch (err) {
+        console.error(err);
+        $q.notify({
+          type: "negative",
+          message: "No se pudo actualizar el estado del pedido ❌",
+          position: "top",
+        });
       }
     };
 
@@ -145,7 +181,7 @@ export default {
       }
     });
 
-    return { folio, total, folioValido };
+    return { folio, total, folioValido, usuario, pagarEfectivo };
   },
 };
 </script>

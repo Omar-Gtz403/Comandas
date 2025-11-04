@@ -1,7 +1,6 @@
 <template>
   <div class="login-page flex flex-center q-pa-md">
     <q-card class="q-pa-lg shadow-10 full-width" style="max-width: 400px">
-      <!-- Header -->
       <q-card-section class="text-center">
         <q-avatar size="80px" class="bg-primary text-white q-mx-auto q-mb-sm">
           <q-icon name="person" size="48px" />
@@ -14,7 +13,6 @@
 
       <q-separator spaced />
 
-      <!-- Formulario -->
       <q-form @submit.prevent="login" class="q-gutter-md">
         <q-input
           filled
@@ -22,7 +20,6 @@
           v-model="credenciales.nombreUsuario"
           label="Usuario"
           type="text"
-          autocomplete="username"
           color="primary"
           label-color="primary"
           prepend-icon="person"
@@ -34,33 +31,20 @@
           v-model="credenciales.password"
           label="Contraseña"
           type="password"
-          autocomplete="current-password"
           color="primary"
           label-color="primary"
           prepend-icon="lock"
         />
 
-        <q-checkbox v-model="recordar" label="Recordarme" color="primary" />
-
-        <!-- Botón -->
         <q-btn
           label="Iniciar sesión"
           type="submit"
-          class="btn-principal full-width"
+          color="primary"
+          class="full-width"
           icon="login"
           unelevated
         />
       </q-form>
-
-      <q-card-section class="text-center">
-        <q-btn
-          flat
-          label="¿Olvidaste tu contraseña?"
-          icon="lock_reset"
-          class="btn-link"
-          @click="router.push('/recuperar')"
-        />
-      </q-card-section>
     </q-card>
   </div>
 </template>
@@ -69,7 +53,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { Notify } from "quasar";
-import { api } from "boot/axios"; // tu instancia axios con baseURL
+import { api } from "boot/axios";
 
 const router = useRouter();
 
@@ -78,58 +62,40 @@ const credenciales = ref({
   password: "",
 });
 
-const recordar = ref(false);
-
 const login = async () => {
   if (!credenciales.value.nombreUsuario || !credenciales.value.password) {
-    Notify.create({
+    return Notify.create({
       type: "warning",
-      message: "Por favor completa todos los campos",
+      message: "Completa todos los campos",
       position: "top",
-      timeout: 2500,
     });
-    return;
   }
 
   try {
     const { data } = await api.post("/auth/login", credenciales.value);
 
-    // Verifica si el usuario existe y tiene permiso
-    if (!data || !data.permiso) {
-      Notify.create({
-        type: "negative",
-        message: "Usuario o contraseña incorrectos",
-        position: "top",
-        timeout: 2500,
-      });
-      return;
-    }
-
-    // Guardar usuario en localStorage
     localStorage.setItem("usuario", JSON.stringify(data));
 
-    // Mensaje de bienvenida
     Notify.create({
       type: "positive",
       message: `¡Bienvenido ${data.nombreUsuario}!`,
       position: "top",
-      timeout: 2500,
     });
 
-    // Redirigir según permiso
-    if (data.permiso === 1) {
-      router.push("/productos"); // admin
+    // Si el usuario tiene permisos, lo mandamos al primero disponible
+    const rutas = data?.rol?.permisos?.map((p) => p.ruta) || [];
+
+    if (rutas.length > 0) {
+      router.push(rutas[0]); // primer permiso
     } else {
-      router.push("/"); // usuario público
+      // si no tiene permisos, menú público
+      router.push("/");
     }
   } catch (err) {
-    console.error("Error login:", err);
-
     Notify.create({
       type: "negative",
       message: "Usuario o contraseña incorrectos",
       position: "top",
-      timeout: 2500,
     });
   }
 };
@@ -138,30 +104,9 @@ const login = async () => {
 <style lang="scss" scoped>
 .login-page {
   min-height: 100vh;
-  background: $body-background; // fondo definido en variables
+  background: $body-background;
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-/* Botón principal */
-.btn-principal {
-  background: $primary !important;
-  color: #fff;
-  font-weight: 600;
-  border-radius: $btn-border-radius;
-  padding: $btn-padding;
-  box-shadow: $btn-box-shadow;
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-.btn-principal:hover {
-  transform: scale(1.01);
-}
-
-/* Links */
-.btn-link {
-  color: $secondary;
-  font-weight: 500;
-  text-transform: none;
 }
 </style>

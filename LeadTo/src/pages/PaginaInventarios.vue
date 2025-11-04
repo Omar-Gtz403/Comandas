@@ -1,178 +1,177 @@
 <template>
   <q-page class="q-pa-md">
-    <q-card class="q-pa-md">
-      <q-card-section>
-        <div class="text-h6 text-center">Registrar Compra</div>
+    <q-card class="q-pa-lg shadow-10" style="max-width: 600px; margin: auto">
+      <q-card-section class="text-h6 text-center">
+        Registrar Compra
       </q-card-section>
 
-      <q-card-section>
-        <q-form
-          @submit.prevent="submitCompra"
-          ref="compraForm"
-          class="q-gutter-md"
-        >
-          <!-- Producto solo Insumos -->
-          <q-select
-            v-model="compra.producto"
-            :options="productosInsumos"
-            option-label="nombreProducto"
-            option-value="codigoBarras"
-            label="Producto (Insumos)"
-            emit-value
-            map-options
-            outlined
-            dense
-            required
-          />
+      <q-form @submit.prevent="registrarCompra" class="q-gutter-md">
+        <!-- Selección de producto -->
+        <q-select
+          v-model="form.producto"
+          :options="productos"
+          option-value="codigoBarras"
+          option-label="nombreProducto"
+          label="Producto"
+          emit-value
+          map-options
+          outlined
+          dense
+          required
+        />
 
-          <!-- Fecha -->
-          <q-input
-            v-model="compra.fecha"
-            label="Fecha"
-            type="date"
-            outlined
-            dense
-            :rules="[(val) => !!val || 'Fecha requerida']"
-          />
+        <!-- Fecha -->
+        <q-input
+          v-model="form.fecha"
+          label="Fecha"
+          type="date"
+          outlined
+          dense
+          required
+        />
 
-          <!-- Cantidad Comprada -->
-          <q-input
-            v-model.number="compra.cantidadCompra"
-            label="Cantidad Comprada"
-            type="number"
-            outlined
-            dense
-            :rules="[(val) => val > 0 || 'Debe ser mayor que 0']"
-          />
+        <!-- Unidad de compra -->
+        <q-select
+          v-model="form.unidadCompra"
+          :options="['pieza', 'caja', 'kg', 'litro']"
+          label="Unidad de compra"
+          outlined
+          dense
+          required
+        />
 
-          <!-- Unidad de Compra -->
-          <q-select
-            v-model="compra.unidadCompra"
-            :options="['pieza', 'caja', 'kg', 'litro']"
-            label="Unidad de Compra"
-            outlined
-            dense
-            required
-          />
+        <!-- Cantidad comprada -->
+        <q-input
+          v-model.number="form.cantidadCompra"
+          label="Cantidad comprada"
+          type="number"
+          outlined
+          dense
+          required
+        />
 
-          <!-- Factor de Conversión -->
-          <q-input
-            v-model.number="compra.factorConversion"
-            label="Factor de Conversión (unidad base)"
-            type="number"
-            outlined
-            dense
-            :rules="[(val) => val > 0 || 'Debe ser mayor que 0']"
-          />
+        <!-- Factor de conversión -->
+        <q-input
+          v-model.number="form.factorConversion"
+          label="Factor de conversión (ej. caja=24 piezas)"
+          type="number"
+          outlined
+          dense
+          required
+        />
 
-          <!-- Precio Unitario -->
-          <q-input
-            v-model.number="compra.precioUnitario"
-            label="Precio Unitario"
-            type="number"
-            outlined
-            dense
-            :rules="[(val) => val >= 0 || 'Debe ser >= 0']"
-          />
+        <!-- Cantidad equivalente (auto) -->
+        <q-input
+          v-model="cantidadEquivalente"
+          label="Cantidad equivalente"
+          type="number"
+          outlined
+          dense
+          disable
+        />
 
-          <!-- Cantidad Equivalente (automático) -->
-          <q-input
-            v-model="cantidadEquivalente"
-            label="Cantidad Equivalente (unidades base)"
-            outlined
-            dense
-            readonly
-          />
+        <!-- Precio unitario -->
+        <q-input
+          v-model.number="form.precioUnitario"
+          label="Precio unitario (por unidad de compra)"
+          type="number"
+          outlined
+          dense
+          required
+        />
 
-          <!-- Total (automático) -->
-          <q-input v-model="total" label="Total" outlined dense readonly />
+        <!-- Total (auto) -->
+        <q-input
+          v-model="total"
+          label="Total"
+          type="number"
+          outlined
+          dense
+          disable
+        />
 
-          <!-- Botón Enviar -->
-          <q-btn
-            label="Registrar Compra"
-            type="submit"
-            color="primary"
-            class="full-width q-mt-md"
-            size="lg"
-            rounded
-          />
-        </q-form>
-      </q-card-section>
+        <!-- Botón -->
+        <q-btn
+          type="submit"
+          color="primary"
+          label="Registrar Compra"
+          class="full-width"
+        />
+      </q-form>
     </q-card>
   </q-page>
 </template>
 
 <script setup>
-defineOptions({ name: "InventarioPage" });
+import { ref, computed, onMounted } from "vue";
+import { useQuasar } from "quasar";
+import axios from "axios";
 
-import { ref, reactive, computed, onMounted } from "vue";
-import { api } from "src/boot/axios";
+const $q = useQuasar();
 
-const productos = ref([]);
-const compra = reactive({
+// Datos del formulario
+const form = ref({
   producto: null,
-  fecha: new Date().toISOString().substr(0, 10),
+  fecha: new Date().toISOString().split("T")[0],
+  unidadCompra: "",
   cantidadCompra: 0,
-  unidadCompra: "pieza",
   factorConversion: 1,
   precioUnitario: 0,
 });
 
-// Computed que filtra solo productos con categoria.id = 5
-const productosInsumos = computed(() =>
-  productos.value.filter((p) => p.categoria && p.categoria.id === 5)
+// Lista de productos (traída del backend)
+const productos = ref([]);
+
+// Cálculo automático
+const cantidadEquivalente = computed(() =>
+  (form.value.cantidadCompra * form.value.factorConversion).toFixed(2)
 );
 
-const cantidadEquivalente = computed(
-  () => compra.cantidadCompra * compra.factorConversion
+const total = computed(() =>
+  (form.value.cantidadCompra * form.value.precioUnitario).toFixed(2)
 );
-const total = computed(() => compra.cantidadCompra * compra.precioUnitario);
 
-// Cargar productos desde API
+// Cargar productos al iniciar
 onMounted(async () => {
   try {
-    const res = await api.get("/productos");
+    const res = await axios.get(
+      "https://comandasleadto.duckdns.org/api/productos"
+    );
     productos.value = res.data;
   } catch (err) {
-    console.error("Error cargando productos:", err);
+    $q.notify({ type: "negative", message: "Error al cargar productos" });
   }
 });
 
-// Función de envío
-const submitCompra = async () => {
+// Registrar compra
+const registrarCompra = async () => {
   try {
     const payload = {
-      producto: { codigoBarras: compra.producto },
-      fecha: compra.fecha,
-      cantidadCompra: compra.cantidadCompra,
-      unidadCompra: compra.unidadCompra,
-      factorConversion: compra.factorConversion,
-      precioUnitario: compra.precioUnitario,
+      producto: { codigoBarras: form.value.producto },
+      fecha: form.value.fecha,
+      unidadCompra: form.value.unidadCompra,
+      cantidadCompra: form.value.cantidadCompra,
+      factorConversion: form.value.factorConversion,
+      cantidadEquivalente: cantidadEquivalente.value,
+      precioUnitario: form.value.precioUnitario,
+      total: total.value,
     };
 
-    await api.post("/compras", payload);
-    alert("Compra registrada correctamente");
+    await axios.post("https://comandasleadto.duckdns.org/api/compras", payload);
 
-    // Reset form
-    compra.cantidadCompra = 0;
-    compra.unidadCompra = "pieza";
-    compra.factorConversion = 1;
-    compra.precioUnitario = 0;
-    compra.producto = null;
+    $q.notify({ type: "positive", message: "Compra registrada con éxito ✅" });
+
+    // Reset formulario
+    form.value = {
+      producto: null,
+      fecha: new Date().toISOString().split("T")[0],
+      unidadCompra: "",
+      cantidadCompra: 0,
+      factorConversion: 1,
+      precioUnitario: 0,
+    };
   } catch (err) {
-    console.error("Error registrando compra:", err);
-    alert("Error al registrar compra");
+    $q.notify({ type: "negative", message: "Error al registrar compra" });
   }
 };
 </script>
-
-<style scoped>
-.q-gutter-md > * {
-  margin-bottom: 1rem;
-}
-
-.q-input,
-.q-select {
-  width: 100%;
-}
-</style>

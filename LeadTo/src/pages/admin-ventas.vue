@@ -2,10 +2,10 @@
   <q-page class="q-pa-md">
     <q-card flat bordered class="q-pa-md">
       <q-card-section>
-        <div class="text-h6 text-primary text-center">Ventas</div>
+        <div class="text-h6 text-primary text-center">Cartelera de Pedidos</div>
       </q-card-section>
 
-      <!-- Filtro de estatus -->
+      <!-- 🔍 Filtro de estatus -->
       <q-select
         v-model="filtroEstatus"
         :options="filtroOptions"
@@ -17,135 +17,113 @@
         class="q-mb-md"
       />
 
-      <q-table
-        :rows="ventasFiltradas"
-        :columns="columns"
-        row-key="folio"
-        flat
-        bordered
-        separator="horizontal"
-        wrap-cells
-        :rows-per-page-options="[50]"
-        :grid="$q.screen.lt.md"
-      >
-        <!-- 🖥️ Vista tabla -->
-        <template v-slot:body="props">
-          <q-tr :props="props">
-            <q-td
-              v-for="col in props.cols"
-              :key="col.name"
-              :props="props"
-              :class="getColColor(col.name)"
+      <!-- 🎬 Vista estilo cartelera -->
+      <div class="row q-col-gutter-md">
+        <div
+          v-for="pedido in ventasFiltradas"
+          :key="pedido.folio"
+          class="col-xs-12 col-sm-6 col-md-4 col-lg-3"
+        >
+          <q-card
+            class="cartelera-card cursor-pointer"
+            @click="abrirDetalle(pedido)"
+          >
+            <q-card-section
+              class="text-center text-white"
+              :class="getHeaderClass(pedido.status)"
             >
-              <template v-if="col.name === 'productos'">
-                <div class="column q-gutter-xs text-body2">
-                  <div v-for="(d, idx) in props.row.detalles" :key="idx">
-                    {{ d.cantidad }}x {{ d.nombreProducto }}
-                  </div>
-                </div>
-              </template>
+              <div class="text-h6">Pedido #{{ pedido.folio }}</div>
+              <div class="text-caption">
+                {{ formatFecha(pedido.fecha) }}
+              </div>
+            </q-card-section>
 
-              <template v-else-if="col.name === 'total'">
-                <div class="text-right text-weight-bold">
-                  ${{ props.row.total.toFixed(2) }}
-                </div>
-              </template>
-
-              <template v-else-if="col.name === 'status'">
-                <div
-                  class="row items-center justify-center no-wrap q-gutter-sm"
-                >
-                  <q-chip
-                    :color="getColor(props.row.status)"
-                    text-color="white"
-                    dense
-                    class="text-weight-medium"
-                  >
-                    {{ getLabel(props.row.status) }}
-                  </q-chip>
-                  <q-select
-                    v-model="props.row.status"
-                    :options="estatusOptions"
-                    dense
-                    outlined
-                    emit-value
-                    map-options
-                    class="status-select"
-                    @update:model-value="
-                      (val) => actualizarStatus(props.row.folio, val)
-                    "
-                  />
-                </div>
-              </template>
-
-              <template v-else-if="col.name === 'fecha'">
-                {{ formatFecha(props.row.fecha) }}
-              </template>
-
-              <template v-else>
-                {{ col.value }}
-              </template>
-            </q-td>
-          </q-tr>
-        </template>
-
-        <!-- 📱 Vista cards -->
-        <template v-slot:item="props">
-          <q-card class="q-ma-xs q-pa-sm full-width shadow-2">
-            <div class="text-subtitle1 text-primary text-bold">
-              Pedido #{{ props.row.folio }}
-            </div>
-
-            <!-- Fecha y hora -->
-            <div class="text-caption text-grey q-mt-xs">
-              {{ formatFecha(props.row.fecha) }}
-            </div>
-
-            <!-- Productos -->
-            <div
-              class="q-mt-sm text-body2 bg-col-productos q-pa-xs rounded-borders"
-            >
-              <div v-for="(d, idx) in props.row.detalles" :key="idx">
+            <q-card-section class="bg-white">
+              <div
+                v-for="(d, idx) in pedido.detalles"
+                :key="idx"
+                class="text-body2"
+              >
                 {{ d.cantidad }}x {{ d.nombreProducto }}
               </div>
-            </div>
+            </q-card-section>
 
-            <!-- Total -->
-            <div
-              class="text-right text-weight-bold q-mt-sm bg-col-total q-pa-xs rounded-borders"
-            >
-              ${{ props.row.total.toFixed(2) }}
-            </div>
+            <q-separator />
 
-            <!-- Estado -->
-            <div
-              class="row items-center q-mt-sm bg-col-status q-pa-xs rounded-borders"
-            >
+            <q-card-section class="text-center">
+              <div class="text-weight-bold text-h6">
+                ${{ pedido.total.toFixed(2) }}
+              </div>
               <q-chip
-                :color="getColor(props.row.status)"
+                :color="getColor(pedido.status)"
                 text-color="white"
+                class="q-mt-sm"
                 dense
-                class="text-weight-medium"
               >
-                {{ getLabel(props.row.status) }}
+                {{ getLabel(pedido.status) }}
               </q-chip>
-              <q-select
-                v-model="props.row.status"
-                :options="estatusOptions"
-                dense
-                outlined
-                emit-value
-                map-options
-                class="q-ml-sm full-width"
-                @update:model-value="
-                  (val) => actualizarStatus(props.row.folio, val)
-                "
-              />
-            </div>
+            </q-card-section>
           </q-card>
-        </template>
-      </q-table>
+        </div>
+      </div>
     </q-card>
+
+    <!-- 📌 Modal Detalles del pedido -->
+    <q-dialog v-model="dialogoDetalle" persistent>
+      <q-card class="detalle-pedido-card">
+        <!-- Header con color según estatus -->
+        <q-card-section
+          class="text-center text-white"
+          :class="getHeaderClass(pedidoSeleccionado?.status)"
+        >
+          <div class="text-h6">Pedido #{{ pedidoSeleccionado?.folio }}</div>
+          <div class="text-caption">
+            {{ formatFecha(pedidoSeleccionado?.fecha) }}
+          </div>
+        </q-card-section>
+
+        <!-- Productos -->
+        <q-card-section>
+          <div class="text-subtitle2 text-grey-8 q-mb-sm">Productos</div>
+          <q-list bordered separator class="rounded-borders">
+            <q-item v-for="(d, idx) in pedidoSeleccionado?.detalles" :key="idx">
+              <q-item-section
+                >{{ d.cantidad }}x {{ d.nombreProducto }}</q-item-section
+              >
+            </q-item>
+          </q-list>
+        </q-card-section>
+
+        <!-- Total -->
+        <q-card-section class="text-right bg-grey-2">
+          <div class="text-h6 text-weight-bold text-primary">
+            Total: ${{ pedidoSeleccionado?.total.toFixed(2) }}
+          </div>
+        </q-card-section>
+
+        <!-- 🔥 Cambio de estatus -->
+        <q-card-section>
+          <div class="text-subtitle2 text-grey-8 q-mb-sm">Cambiar Estatus</div>
+          <q-select
+            v-model="pedidoSeleccionado.status"
+            :options="estatusOptions"
+            dense
+            outlined
+            emit-value
+            map-options
+            class="full-width"
+            @update:model-value="
+              (val) => cambiarStatusYCerrar(pedidoSeleccionado.folio, val)
+            "
+          />
+        </q-card-section>
+
+        <!-- Acciones -->
+        <q-card-actions align="right">
+          <q-btn flat label="Cerrar" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -158,6 +136,9 @@ export default {
   setup() {
     const ventas = ref([]);
     const { proxy } = getCurrentInstance();
+
+    const pedidoSeleccionado = ref(null);
+    const dialogoDetalle = ref(false);
 
     const estatusOptions = [
       { label: "Esperando pago", value: 0 },
@@ -178,19 +159,6 @@ export default {
     ];
     const filtroEstatus = ref("activos");
 
-    const columns = [
-      { name: "folio", label: "Folio", field: "folio", align: "center" },
-      { name: "fecha", label: "Fecha y hora", field: "fecha", align: "center" },
-      {
-        name: "productos",
-        label: "Productos",
-        field: "productos",
-        align: "left",
-      },
-      { name: "total", label: "Total ($)", field: "total", align: "right" },
-      { name: "status", label: "Estado", field: "status", align: "center" },
-    ];
-
     const getColor = (status) => {
       switch (status) {
         case 0:
@@ -207,6 +175,25 @@ export default {
           return "negative";
         default:
           return "grey";
+      }
+    };
+
+    const getHeaderClass = (status) => {
+      switch (status) {
+        case 0:
+          return "bg-grey-7";
+        case 1:
+          return "bg-green-6";
+        case 2:
+          return "bg-orange-6";
+        case 3:
+          return "bg-blue-6";
+        case 4:
+          return "bg-purple-6";
+        case 5:
+          return "bg-red-7";
+        default:
+          return "bg-grey-6";
       }
     };
 
@@ -244,8 +231,6 @@ export default {
 
     const ventasFiltradas = computed(() => {
       let lista = [...ventas.value];
-
-      // Fecha de hoy
       const hoy = new Date();
       const inicioHoy = new Date(
         hoy.getFullYear(),
@@ -255,32 +240,23 @@ export default {
       const finHoy = new Date(inicioHoy);
       finHoy.setDate(finHoy.getDate() + 1);
 
-      // Filtrado según el selector
       if (filtroEstatus.value === "activos") {
         lista = lista.filter(
           (v) =>
             [1, 2].includes(v.status) &&
             v.fecha >= inicioHoy &&
-            v.fecha < finHoy // sólo pedidos de hoy
+            v.fecha < finHoy
         );
       } else if (filtroEstatus.value !== "todos") {
         lista = lista.filter((v) => v.status === filtroEstatus.value);
       }
 
-      // Ordenamiento por prioridad de estatus y fecha
-      const prioridadStatus = {
-        1: 1, // Pago confirmado (primero)
-        2: 2, // Preparando (después)
-        3: 3, // Listo para recoger
-        4: 4, // Entregado
-        0: 5, // Esperando pago
-        5: 6, // Cancelado/eliminado
-      };
+      const prioridadStatus = { 1: 1, 2: 2, 3: 3, 4: 4, 0: 5, 5: 6 };
 
       return lista.sort((a, b) => {
         const diff = prioridadStatus[a.status] - prioridadStatus[b.status];
-        if (diff !== 0) return diff; // Primero por estatus
-        return new Date(a.fecha) - new Date(b.fecha); // Luego por fecha (más antiguo primero)
+        if (diff !== 0) return diff;
+        return new Date(a.fecha) - new Date(b.fecha);
       });
     });
 
@@ -294,21 +270,14 @@ export default {
       }
     };
 
-    const getColColor = (colName) => {
-      switch (colName) {
-        case "folio":
-          return "bg-col-id";
-        case "productos":
-          return "bg-col-productos";
-        case "total":
-          return "bg-col-total";
-        case "status":
-          return "bg-col-status";
-        case "fecha":
-          return "bg-col-fecha";
-        default:
-          return "";
-      }
+    const cambiarStatusYCerrar = async (folio, nuevoStatus) => {
+      await actualizarStatus(folio, nuevoStatus);
+      dialogoDetalle.value = false; // 🔥 se cierra solo
+    };
+
+    const abrirDetalle = (pedido) => {
+      pedidoSeleccionado.value = pedido;
+      dialogoDetalle.value = true;
     };
 
     onMounted(() => {
@@ -321,44 +290,34 @@ export default {
       ventasFiltradas,
       filtroEstatus,
       filtroOptions,
-      columns,
-      estatusOptions,
       getColor,
       getLabel,
+      getHeaderClass,
       formatFecha,
+      pedidoSeleccionado,
+      dialogoDetalle,
+      abrirDetalle,
+      estatusOptions,
       actualizarStatus,
-      getColColor,
+      cambiarStatusYCerrar,
     };
   },
 };
 </script>
 
 <style scoped>
-/* 🎨 Colores por columna */
-.bg-col-id {
-  background-color: #ffe8a1;
+.cartelera-card {
+  border-radius: 12px;
+  transition: transform 0.2s;
 }
-.bg-col-fecha {
-  background-color: #f0f0f0;
-}
-.bg-col-productos {
-  background-color: #e1f5fe;
-}
-.bg-col-total {
-  background-color: #ffe0e0;
-}
-.bg-col-status {
-  background-color: #e8f5e9;
+.cartelera-card:hover {
+  transform: scale(1.03);
 }
 
-/* General */
-.q-table .q-td {
-  vertical-align: middle;
-  padding: 10px;
-}
-.q-table .q-th {
-  background: #f8f9fa;
-  font-weight: 600;
-  text-align: center;
+.detalle-pedido-card {
+  width: 90vw;
+  max-width: 420px;
+  border-radius: 16px;
+  overflow: hidden;
 }
 </style>
