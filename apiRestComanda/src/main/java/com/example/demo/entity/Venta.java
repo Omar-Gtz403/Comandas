@@ -33,7 +33,6 @@ public class Venta {
 
     private Double total;
 
-    private Boolean pagado = false;
 
     private Integer status;
 
@@ -79,13 +78,6 @@ public class Venta {
 		this.total = total;
 	}
 
-	public Boolean getPagado() {
-		return pagado;
-	}
-
-	public void setPagado(Boolean pagado) {
-		this.pagado = pagado;
-	}
 
 	public Integer getStatus() {
 		return status;

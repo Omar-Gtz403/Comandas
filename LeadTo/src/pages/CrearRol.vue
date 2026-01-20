@@ -1,84 +1,117 @@
 <template>
   <q-page class="q-pa-md flex flex-center">
-    <div class="w-full max-w-2xl bg-white p-6 rounded-xl shadow-lg">
-      <div class="text-h5 text-weight-bold text-primary text-center mb-4">
-        Crear Rol
-      </div>
-
-      <q-form @submit.prevent="crearRol" class="q-gutter-md">
-        <!-- Nombre del rol -->
-        <q-input
-          v-model="rol.nombre"
-          label="Nombre del Rol"
-          outlined
-          dense
-          required
-          clearable
-          prepend-icon="badge"
-        />
-
-        <!-- Permisos disponibles -->
-        <div class="q-mt-md">
-          <div class="text-subtitle1 text-weight-medium text-grey-8 q-mb-sm">
-            Permisos disponibles
-          </div>
-
-          <!-- Contenedor de permisos en cuadrícula -->
-          <div class="permisos-grid">
-            <q-card
-              v-for="permiso in permisos"
-              :key="permiso.id"
-              class="permiso-card"
-              flat
-              bordered
-            >
-              <q-card-section class="q-pa-sm flex items-center">
-                <q-checkbox
-                  v-model="rol.permisosIds"
-                  :val="permiso.id"
-                  :label="permiso.nombre"
-                  dense
-                  size="sm"
-                />
-              </q-card-section>
-            </q-card>
-          </div>
+    <q-card
+      flat
+      bordered
+      class="full-width q-pa-lg shadow-4 card-container bg-white"
+      style="max-width: 800px"
+    >
+      <!-- 🔄 SPINNER GLOBAL -->
+      <q-inner-loading :showing="loading">
+        <q-spinner-gears size="48px" color="primary" />
+        <div class="text-primary q-mt-sm text-weight-medium">
+          Procesando información...
         </div>
+      </q-inner-loading>
 
-        <!-- Botón crear -->
-        <q-btn
-          label="Crear Rol"
-          type="submit"
-          color="primary"
-          class="w-full q-mt-md"
-          unelevated
-          icon="add_circle"
-        />
-      </q-form>
+      <!-- Header -->
+      <q-card-section class="text-center">
+        <div class="text-h5 text-weight-bold text-primary">
+          Gestión de Roles
+        </div>
+        <div class="text-caption text-grey-7">
+          Crea roles y asigna permisos al sistema
+        </div>
+      </q-card-section>
 
-      <q-separator spaced class="q-my-md" />
+      <q-separator spaced />
 
-      <!-- Lista de roles existentes -->
-      <div>
+      <!-- FORMULARIO -->
+      <q-card-section>
+        <q-form @submit.prevent="crearRol" class="q-gutter-md">
+          <q-input
+            v-model="rol.nombre"
+            label="Nombre del Rol"
+            outlined
+            dense
+            clearable
+            prepend-icon="badge"
+            :disable="loading"
+            :rules="[(v) => !!v || 'Ingrese un nombre']"
+          />
+
+          <div>
+            <div class="text-subtitle1 text-weight-medium text-grey-8 q-mb-sm">
+              Permisos disponibles
+            </div>
+
+            <div class="permisos-grid">
+              <q-card
+                v-for="permiso in permisos"
+                :key="permiso.id"
+                flat
+                bordered
+                class="permiso-card"
+                :class="{
+                  'permiso-activo': rol.permisosIds.includes(permiso.id),
+                }"
+              >
+                <q-card-section class="q-pa-sm">
+                  <q-checkbox
+                    v-model="rol.permisosIds"
+                    :val="permiso.id"
+                    :label="permiso.nombre"
+                    dense
+                    color="primary"
+                  />
+                </q-card-section>
+              </q-card>
+            </div>
+          </div>
+
+          <q-btn
+            label="Crear Rol"
+            type="submit"
+            color="primary"
+            icon="add_circle"
+            unelevated
+            class="full-width q-mt-md"
+            :loading="loading"
+          />
+        </q-form>
+      </q-card-section>
+
+      <q-separator spaced />
+
+      <!-- LISTA -->
+      <q-card-section>
         <div class="text-subtitle1 text-weight-medium text-grey-8 q-mb-sm">
           Roles existentes
         </div>
 
-        <q-list bordered padding>
-          <q-item v-for="r in roles" :key="r.id" class="rounded-borders">
+        <q-list bordered separator>
+          <q-item v-for="r in roles" :key="r.id">
             <q-item-section>
-              <div class="text-weight-bold text-primary">{{ r.nombre }}</div>
-              <div class="text-caption text-grey">
+              <div class="text-weight-bold text-primary">
+                {{ r.nombre }}
+              </div>
+              <div class="text-caption text-grey-7">
                 Permisos:
-                <span class="text-grey-8">
+                <span class="text-grey-9">
                   {{ r.permisosList?.join(", ") || "Sin permisos" }}
                 </span>
               </div>
             </q-item-section>
           </q-item>
+
+          <q-item v-if="!loading && roles.length === 0">
+            <q-item-section class="text-grey text-center">
+              No hay roles registrados
+            </q-item-section>
+          </q-item>
         </q-list>
-      </div>
-    </div>
+      </q-card-section>
+    </q-card>
   </q-page>
 </template>
 
@@ -86,6 +119,8 @@
 import { ref, onMounted } from "vue";
 import { api } from "boot/axios";
 import { Notify } from "quasar";
+
+const loading = ref(false);
 
 const rol = ref({
   nombre: "",
@@ -96,6 +131,7 @@ const roles = ref([]);
 const permisos = ref([]);
 
 const cargarRoles = async () => {
+  loading.value = true;
   try {
     const { data } = await api.get("/roles");
     roles.value = data.map((r) => ({
@@ -105,6 +141,8 @@ const cargarRoles = async () => {
     }));
   } catch {
     Notify.create({ type: "negative", message: "Error al cargar roles" });
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -123,12 +161,7 @@ onMounted(() => {
 });
 
 const crearRol = async () => {
-  if (!rol.value.nombre) {
-    return Notify.create({
-      type: "warning",
-      message: "Ingrese un nombre para el rol",
-    });
-  }
+  if (!rol.value.nombre) return;
 
   if (
     roles.value.some(
@@ -141,6 +174,7 @@ const crearRol = async () => {
     });
   }
 
+  loading.value = true;
   try {
     const { data } = await api.post("/roles", {
       nombre: rol.value.nombre,
@@ -162,19 +196,21 @@ const crearRol = async () => {
       type: "negative",
       message: err.response?.data?.message || "Error al crear rol",
     });
+  } finally {
+    loading.value = false;
   }
 };
 </script>
 
 <style scoped>
-.w-full {
-  width: 100%;
+.card-container {
+  position: relative;
 }
 
 .permisos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
 .permiso-card {
@@ -183,7 +219,12 @@ const crearRol = async () => {
 }
 
 .permiso-card:hover {
-  background-color: #f0f4ff;
-  border-color: #2196f3;
+  background-color: var(--q-primary-light);
+  border-color: var(--q-primary);
+}
+
+.permiso-activo {
+  border-color: var(--q-primary);
+  background-color: rgba(33, 150, 243, 0.08);
 }
 </style>

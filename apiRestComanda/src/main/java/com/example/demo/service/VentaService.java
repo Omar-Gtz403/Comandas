@@ -47,11 +47,13 @@ public class VentaService {
 
 	@Transactional
 	public Venta marcarComoPagada(Long id) {
-		Venta venta = ventaRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Venta no encontrada con ID: " + id));
-		venta.setPagado(true);
-		return ventaRepository.save(venta);
+	    Venta venta = ventaRepository.findById(id)
+	        .orElseThrow(() -> new RuntimeException("Venta no encontrada con ID: " + id));
+
+	    venta.setStatus(1); // ✅ PAGADO
+	    return ventaRepository.save(venta);
 	}
+
 
 	// ✅ Nuevo método para traer detalles como DTO
 	public List<VentaDetalleDTO> obtenerDetalles(Long ventaId) {

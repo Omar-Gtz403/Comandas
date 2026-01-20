@@ -3,60 +3,67 @@
     <!-- HEADER -->
     <q-header elevated class="bg-primary text-white">
       <q-toolbar>
-        <q-btn flat @click="drawer = !drawer" round dense icon="menu" />
-        <q-toolbar-title>{{ tituloPagina }}</q-toolbar-title>
+        <q-btn flat dense round icon="menu" @click="drawer = !drawer" />
+
+        <q-avatar size="42px" class="q-ml-sm">
+          <img src="../assets/logo.jpg" />
+        </q-avatar>
+
+        <q-toolbar-title class="text-weight-bold q-ml-sm">
+          {{ tituloPagina }}
+        </q-toolbar-title>
       </q-toolbar>
     </q-header>
 
     <!-- DRAWER -->
-    <q-drawer v-model="drawer" show-if-above :width="240" bordered>
-      <!-- Perfil -->
-      <q-img
-        class="absolute-top"
-        src="https://cdn.quasar.dev/img/material.png"
-        style="height: 130px"
-      >
-        <div class="absolute-bottom bg-transparent q-pa-sm text-center">
-          <q-avatar size="56px" class="q-mb-xs shadow-2">
-            <img src="https://cdn.quasar.dev/img/boy-avatar.png" />
-          </q-avatar>
-          <div class="text-weight-bold text-white">
-            {{ usuario ? usuario.nombreUsuario : "Bienvenido 👋" }}
-          </div>
-          <div class="text-caption text-grey-2">
-            {{ usuario ? usuario.rol?.nombre : "¿Listo para el antojo?" }}
-          </div>
-        </div>
-      </q-img>
+    <q-drawer v-model="drawer" show-if-above bordered class="bg-grey-1">
+      <!-- PERFIL -->
+      <div class="drawer-header">
+        <q-avatar size="72px" class="shadow-3">
+          <img src="../assets/logo.jpg" />
+        </q-avatar>
 
-      <!-- MENÚ LATERAL -->
-      <q-scroll-area style="height: calc(100% - 130px); margin-top: 130px">
+        <div class="text-weight-bold q-mt-sm">
+          {{ usuario ? usuario.nombreUsuario : "Bienvenido" }}
+        </div>
+
+        <div class="text-caption text-grey-7">
+          {{
+            usuario ? usuario.rol?.nombre : "Mariscos frescos todos los días"
+          }}
+        </div>
+      </div>
+
+      <!-- MENÚ -->
+      <q-scroll-area class="drawer-scroll">
         <q-list padding>
-          <!-- 🔹 SECCIÓN ADMINISTRACIÓN -->
+          <!-- ADMIN -->
           <template v-if="usuario && rutasRol.length">
-            <div class="text-subtitle2 text-grey q-px-md q-mb-sm">
-              Administración
-            </div>
+            <div class="drawer-section">Administración</div>
 
             <q-item
               v-for="r in rutasRol"
               :key="r"
               clickable
               v-ripple
+              :active="route.path === r"
+              active-class="item-activo"
               @click="irA(r)"
             >
               <q-item-section avatar>
-                <q-icon :name="iconos[r] || 'folder'" />
+                <q-icon :name="iconos[r]" />
               </q-item-section>
-              <q-item-section>{{ titulos[r] || r }}</q-item-section>
+              <q-item-section>
+                {{ titulos[r] }}
+              </q-item-section>
             </q-item>
 
             <q-separator spaced />
           </template>
 
-          <!-- 🔹 SECCIÓN CLIENTE -->
+          <!-- CLIENTE -->
           <template v-if="!usuario">
-            <div class="text-subtitle2 text-grey q-px-md q-mb-sm">Cliente</div>
+            <div class="drawer-section">Cliente</div>
 
             <q-item clickable v-ripple @click="irA('/')">
               <q-item-section avatar>
@@ -69,19 +76,18 @@
               <q-item-section avatar>
                 <q-icon name="receipt_long" />
               </q-item-section>
-              <q-item-section>Estatus de Pedido</q-item-section>
+              <q-item-section>Mi Pedido</q-item-section>
             </q-item>
-
-            <q-separator spaced />
           </template>
 
-          <!-- 🔹 CERRAR SESIÓN -->
+          <!-- LOGOUT -->
           <template v-if="usuario">
+            <q-separator spaced />
             <q-item clickable v-ripple @click="cerrarSesion">
               <q-item-section avatar>
                 <q-icon name="logout" />
               </q-item-section>
-              <q-item-section>Cerrar Sesión</q-item-section>
+              <q-item-section>Cerrar sesión</q-item-section>
             </q-item>
           </template>
         </q-list>
@@ -94,7 +100,6 @@
     </q-page-container>
   </q-layout>
 </template>
-
 <script setup>
 import { ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
@@ -105,10 +110,8 @@ const route = useRoute();
 
 const usuario = JSON.parse(localStorage.getItem("usuario"));
 
-// 🔹 Rutas según permisos del rol (solo si hay sesión)
 const rutasRol = usuario?.rol?.permisos?.map((p) => p.ruta) || [];
 
-// 🔹 Mapas de títulos e íconos
 const titulos = {
   "/dashboard": "Dashboard",
   "/registro": "Registro",
@@ -121,7 +124,8 @@ const titulos = {
   "/categorias": "Categorías",
   "/productos": "Productos",
   "/registrousuario": "Usuarios",
-  "/": "Menu Comida",
+  "/": "Menú",
+  "/caja": "Caja",
 };
 
 const iconos = {
@@ -135,42 +139,61 @@ const iconos = {
   "/scan": "qr_code_scanner",
   "/categorias": "category",
   "/productos": "inventory_2",
-  "/registrousuario": "person_add",
+  "/registrousuario": "person",
   "/": "restaurant_menu",
+  "/caja": "money",
 };
 
-// 🔹 Título dinámico
-const tituloPagina = computed(() => titulos[route.path] || "Inicio");
+const tituloPagina = computed(() => titulos[route.path] || "Marisquería");
 
-// 🔹 Navegación
 const irA = (ruta) => {
   drawer.value = false;
   router.push(ruta);
 };
 
-// 🔹 Cerrar sesión
 const cerrarSesion = () => {
   localStorage.removeItem("usuario");
   router.push("/login");
 };
 </script>
-
 <style scoped lang="sass">
-.q-drawer
-  background-color: #f5f5f5
+/* HEADER */
+.q-header
+  box-shadow: var(--q-toolbar-shadow)
 
-.q-avatar img
-  object-fit: cover
+/* DRAWER */
+.drawer-header
+  padding: 24px
+  text-align: center
 
-.text-subtitle2
+
+.drawer-scroll
+  height: calc(100% - 170px)
+
+/* SECCIONES */
+.drawer-section
+  font-size: 12px
   font-weight: 600
+  color: var(--q-text-color-secondary)
   text-transform: uppercase
-  letter-spacing: 0.5px
+  margin: 12px 16px 6px
 
+/* ITEMS */
 .q-item
-  border-radius: 8px
-  margin: 2px 8px
-  transition: background-color 0.2s ease
+  border-radius: var(--q-border-radius)
+  margin: 4px 8px
+  color: var(--q-text-color)
+  transition: background-color .2s ease, color .2s ease
+
 .q-item:hover
-  background-color: #e0e0e0
+  background: rgba(2, 119, 189, 0.08) // secondary suave
+
+/* ITEM ACTIVO */
+.item-activo
+  background: rgba(198, 40, 40, 0.15) // primary con opacidad
+  color: var(--q-primary)
+  font-weight: 600
+
+.q-item--active .q-icon
+  color: var(--q-primary)
 </style>

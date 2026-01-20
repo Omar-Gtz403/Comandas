@@ -1,4 +1,4 @@
-const routes = [
+export default [
   {
     path: "/",
     component: () => import("layouts/MainLayout.vue"),
@@ -9,21 +9,22 @@ const routes = [
         component: () => import("pages/CrearRol.vue"),
         meta: { requierePermiso: "/rol" },
       },
-      {
-        path: "status",
-        component: () => import("pages/Estatuspedido.vue"),
-        meta: { requierePermiso: "/status" },
-      },
+      { path: "status", component: () => import("pages/Estatuspedido.vue") },
       { path: "ticket", component: () => import("pages/Ticket.vue") },
+
       {
         path: "pagos",
         component: () => import("pages/PagosComandasLayout.vue"),
-        meta: { requierePermiso: "/pagos" },
       },
       {
         path: "scan",
         component: () => import("pages/ScanQR.vue"),
         meta: { requierePermiso: "/scan" },
+      },
+      {
+        path: "caja",
+        component: () => import("pages/CajaPage.vue"),
+        meta: { requierePermiso: "/caja" },
       },
       {
         path: "dashboard",
@@ -62,17 +63,13 @@ const routes = [
       },
     ],
   },
-
   {
     path: "/login",
     component: () => import("layouts/AuthLayout.vue"),
     children: [{ path: "", component: () => import("pages/LoginPage.vue") }],
   },
-
   {
     path: "/:catchAll(.*)*",
     component: () => import("pages/ErrorNotFound.vue"),
   },
 ];
-
-export default routes;

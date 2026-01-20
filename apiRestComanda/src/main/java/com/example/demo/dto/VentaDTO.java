@@ -19,7 +19,6 @@ public class VentaDTO {
         this.id = venta.getId();
         this.folio = venta.getFolio();
         this.total = venta.getTotal();
-        this.pagado = venta.getPagado();
         this.status = venta.getStatus();
         this.fecha = venta.getFecha(); // 👈 Aquí asignamos la fecha
         this.detalles = venta.getDetalles()

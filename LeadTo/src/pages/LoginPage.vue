@@ -1,12 +1,31 @@
 <template>
-  <div class="login-page flex flex-center q-pa-md">
-    <q-card class="q-pa-lg shadow-10 full-width" style="max-width: 400px">
+  <q-page class="login-page flex flex-center q-pa-md">
+    <q-inner-loading
+      :showing="loading"
+      label="Iniciando sesión..."
+      label-class="text-primary"
+    >
+      <q-spinner-gears size="48px" color="primary" />
+    </q-inner-loading>
+
+    <q-card
+      class="q-pa-lg shadow-12 full-width rounded-borders"
+      style="max-width: 420px"
+    >
       <q-card-section class="text-center">
-        <q-avatar size="80px" class="bg-primary text-white q-mx-auto q-mb-sm">
+        <q-avatar
+          size="80px"
+          color="primary"
+          text-color="white"
+          class="q-mx-auto q-mb-sm"
+        >
           <q-icon name="person" size="48px" />
         </q-avatar>
-        <div class="text-h5 text-primary q-mt-sm">Bienvenido</div>
-        <div class="text-subtitle2 text-color-secondary">
+
+        <div class="text-h5 text-primary text-weight-bold q-mt-sm">
+          Bienvenido
+        </div>
+        <div class="text-subtitle2 text-secondary">
           Inicia sesión para continuar
         </div>
       </q-card-section>
@@ -15,38 +34,43 @@
 
       <q-form @submit.prevent="login" class="q-gutter-md">
         <q-input
+          v-model="credenciales.nombreUsuario"
           filled
           dense
-          v-model="credenciales.nombreUsuario"
+          autofocus
           label="Usuario"
-          type="text"
           color="primary"
-          label-color="primary"
           prepend-icon="person"
+          :disable="loading"
         />
 
         <q-input
+          v-model="credenciales.password"
           filled
           dense
-          v-model="credenciales.password"
-          label="Contraseña"
           type="password"
+          label="Contraseña"
           color="primary"
-          label-color="primary"
           prepend-icon="lock"
+          :disable="loading"
         />
 
         <q-btn
-          label="Iniciar sesión"
           type="submit"
-          color="primary"
-          class="full-width"
+          label="Iniciar sesión"
           icon="login"
+          color="primary"
+          class="full-width q-mt-sm"
           unelevated
+          :loading="loading"
         />
       </q-form>
+
+      <q-card-section class="text-center text-caption text-grey-7 q-pt-md">
+        © {{ new Date().getFullYear() }} LeadTo · Todos los derechos reservados
+      </q-card-section>
     </q-card>
-  </div>
+  </q-page>
 </template>
 
 <script setup>
@@ -56,6 +80,7 @@ import { Notify } from "quasar";
 import { api } from "boot/axios";
 
 const router = useRouter();
+const loading = ref(false);
 
 const credenciales = ref({
   nombreUsuario: "",
@@ -64,12 +89,15 @@ const credenciales = ref({
 
 const login = async () => {
   if (!credenciales.value.nombreUsuario || !credenciales.value.password) {
-    return Notify.create({
+    Notify.create({
       type: "warning",
       message: "Completa todos los campos",
       position: "top",
     });
+    return;
   }
+
+  loading.value = true;
 
   try {
     const { data } = await api.post("/auth/login", credenciales.value);
@@ -82,31 +110,26 @@ const login = async () => {
       position: "top",
     });
 
-    // Si el usuario tiene permisos, lo mandamos al primero disponible
     const rutas = data?.rol?.permisos?.map((p) => p.ruta) || [];
-
-    if (rutas.length > 0) {
-      router.push(rutas[0]); // primer permiso
-    } else {
-      // si no tiene permisos, menú público
-      router.push("/");
-    }
-  } catch (err) {
+    router.push(rutas.length ? rutas[0] : "/");
+  } catch {
     Notify.create({
       type: "negative",
       message: "Usuario o contraseña incorrectos",
       position: "top",
     });
+  } finally {
+    loading.value = false;
   }
 };
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .login-page {
   min-height: 100vh;
-  background: $body-background;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+}
+
+.rounded-borders {
+  border-radius: 16px;
 }
 </style>

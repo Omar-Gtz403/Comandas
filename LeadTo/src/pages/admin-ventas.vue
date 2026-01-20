@@ -1,124 +1,170 @@
 <template>
-  <q-page class="q-pa-md">
-    <q-card flat bordered class="q-pa-md">
-      <q-card-section>
-        <div class="text-h6 text-primary text-center">Cartelera de Pedidos</div>
-      </q-card-section>
+  <q-page class="q-pa-lg bg-grey-2">
+    <!-- 🔄 CARGA -->
+    <q-inner-loading :showing="loading">
+      <q-spinner-cube size="60px" color="primary" />
+      <div class="q-mt-md text-primary text-weight-bold">
+        Cargando pedidos...
+      </div>
+    </q-inner-loading>
 
-      <!-- 🔍 Filtro de estatus -->
-      <q-select
-        v-model="filtroEstatus"
-        :options="filtroOptions"
-        label="Filtrar por estatus"
-        dense
-        outlined
-        emit-value
-        map-options
-        class="q-mb-md"
-      />
-
-      <!-- 🎬 Vista estilo cartelera -->
-      <div class="row q-col-gutter-md">
-        <div
-          v-for="pedido in ventasFiltradas"
-          :key="pedido.folio"
-          class="col-xs-12 col-sm-6 col-md-4 col-lg-3"
-        >
-          <q-card
-            class="cartelera-card cursor-pointer"
-            @click="abrirDetalle(pedido)"
-          >
-            <q-card-section
-              class="text-center text-white"
-              :class="getHeaderClass(pedido.status)"
-            >
-              <div class="text-h6">Pedido #{{ pedido.folio }}</div>
-              <div class="text-caption">
-                {{ formatFecha(pedido.fecha) }}
-              </div>
-            </q-card-section>
-
-            <q-card-section class="bg-white">
-              <div
-                v-for="(d, idx) in pedido.detalles"
-                :key="idx"
-                class="text-body2"
-              >
-                {{ d.cantidad }}x {{ d.nombreProducto }}
-              </div>
-            </q-card-section>
-
-            <q-separator />
-
-            <q-card-section class="text-center">
-              <div class="text-weight-bold text-h6">
-                ${{ pedido.total.toFixed(2) }}
-              </div>
-              <q-chip
-                :color="getColor(pedido.status)"
-                text-color="white"
-                class="q-mt-sm"
-                dense
-              >
-                {{ getLabel(pedido.status) }}
-              </q-chip>
-            </q-card-section>
-          </q-card>
+    <!-- 🟦 HEADER -->
+    <q-card class="q-pa-md q-mb-lg bg-primary text-white">
+      <div class="row items-center justify-between">
+        <div class="row items-center">
+          <q-icon name="restaurant" size="36px" />
+          <div class="text-h5 text-weight-bold q-ml-sm">
+            Administración de Pedidos
+          </div>
         </div>
+
+        <q-btn flat icon="refresh" label="Recargar" @click="getVentas" />
       </div>
     </q-card>
 
-    <!-- 📌 Modal Detalles del pedido -->
-    <q-dialog v-model="dialogoDetalle" persistent>
+    <!-- 📊 KPIS -->
+    <div class="row q-col-gutter-md q-mb-lg">
+      <q-card v-for="kpi in kpis" :key="kpi.label" class="col bg-white q-pa-md">
+        <div class="row items-center justify-between">
+          <div>
+            <div class="text-subtitle2 text-grey-7">{{ kpi.label }}</div>
+            <div class="text-h5 text-weight-bold">{{ kpi.value }}</div>
+          </div>
+          <q-icon :name="kpi.icon" size="32px" :color="kpi.color" />
+        </div>
+      </q-card>
+    </div>
+
+    <!-- 🧭 FILTROS -->
+    <q-card class="q-pa-md q-mb-md">
+      <q-tabs
+        v-model="estadoFiltro"
+        dense
+        align="justify"
+        active-color="primary"
+        indicator-color="primary"
+      >
+        <q-tab name="TODOS" label="Todos" />
+        <q-tab name="ACTIVOS" label="Activos" />
+        <q-tab name="PREPARANDO" label="Preparando" />
+        <q-tab name="LISTO" label="Listos" />
+        <q-tab name="ENTREGADO" label="Entregados" />
+        <q-tab name="CANCELADO" label="Cancelados" />
+      </q-tabs>
+
+      <div class="row q-col-gutter-md q-mt-md">
+        <q-input
+          v-model="busqueda"
+          dense
+          outlined
+          debounce="300"
+          placeholder="Buscar por folio o producto"
+          class="col"
+          clearable
+        >
+          <template #prepend>
+            <q-icon name="search" />
+          </template>
+        </q-input>
+
+        <q-btn
+          outline
+          icon="filter_alt_off"
+          label="Limpiar filtros"
+          @click="limpiarFiltros"
+        />
+      </div>
+    </q-card>
+
+    <!-- 📦 PEDIDOS -->
+    <div class="row q-col-gutter-md">
+      <div
+        v-for="pedido in pedidosFiltrados"
+        :key="pedido.folio"
+        class="col-xs-12 col-sm-6 col-md-4 col-lg-3"
+      >
+        <q-card
+          class="cartelera-card cursor-pointer"
+          @click="abrirDetalle(pedido)"
+        >
+          <q-card-section
+            class="text-white text-center"
+            :class="getHeaderClass(pedido.status)"
+          >
+            <div class="text-h6">Pedido #{{ pedido.folio }}</div>
+            <div class="text-caption">{{ formatFecha(pedido.fecha) }}</div>
+          </q-card-section>
+
+          <q-card-section class="bg-white">
+            <div v-for="(d, i) in pedido.detalles" :key="i" class="text-body2">
+              🍴 {{ d.cantidad }} x {{ d.nombreProducto }}
+            </div>
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-section class="text-center">
+            <div class="text-h6 text-weight-bold">
+              ${{ pedido.total.toFixed(2) }}
+            </div>
+
+            <q-chip
+              :color="getColor(pedido.status)"
+              text-color="white"
+              dense
+              class="q-mt-sm"
+            >
+              {{ getLabel(pedido.status) }}
+            </q-chip>
+
+            <div class="row justify-center q-gutter-sm q-mt-sm">
+              <q-btn
+                v-if="pedido.status === 1"
+                label="Preparar"
+                color="warning"
+                dense
+                @click.stop="cambiarStatus(pedido, 2)"
+              />
+              <q-btn
+                v-if="pedido.status === 2"
+                label="Listo"
+                color="accent"
+                dense
+                @click.stop="cambiarStatus(pedido, 3)"
+              />
+              <q-btn
+                v-if="pedido.status === 3"
+                label="Entregar"
+                color="positive"
+                dense
+                @click.stop="cambiarStatus(pedido, 4)"
+              />
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
+    </div>
+
+    <!-- 📌 DETALLE -->
+    <q-dialog v-model="dialogoDetalle">
       <q-card class="detalle-pedido-card">
-        <!-- Header con color según estatus -->
         <q-card-section
-          class="text-center text-white"
+          class="text-white text-center"
           :class="getHeaderClass(pedidoSeleccionado?.status)"
         >
           <div class="text-h6">Pedido #{{ pedidoSeleccionado?.folio }}</div>
-          <div class="text-caption">
-            {{ formatFecha(pedidoSeleccionado?.fecha) }}
-          </div>
         </q-card-section>
 
-        <!-- Productos -->
         <q-card-section>
-          <div class="text-subtitle2 text-grey-8 q-mb-sm">Productos</div>
-          <q-list bordered separator class="rounded-borders">
-            <q-item v-for="(d, idx) in pedidoSeleccionado?.detalles" :key="idx">
-              <q-item-section
-                >{{ d.cantidad }}x {{ d.nombreProducto }}</q-item-section
-              >
+          <q-list bordered separator>
+            <q-item v-for="(d, i) in pedidoSeleccionado?.detalles" :key="i">
+              <q-item-section>
+                {{ d.cantidad }} x {{ d.nombreProducto }}
+              </q-item-section>
             </q-item>
           </q-list>
         </q-card-section>
 
-        <!-- Total -->
-        <q-card-section class="text-right bg-grey-2">
-          <div class="text-h6 text-weight-bold text-primary">
-            Total: ${{ pedidoSeleccionado?.total.toFixed(2) }}
-          </div>
-        </q-card-section>
-
-        <!-- 🔥 Cambio de estatus -->
-        <q-card-section>
-          <div class="text-subtitle2 text-grey-8 q-mb-sm">Cambiar Estatus</div>
-          <q-select
-            v-model="pedidoSeleccionado.status"
-            :options="estatusOptions"
-            dense
-            outlined
-            emit-value
-            map-options
-            class="full-width"
-            @update:model-value="
-              (val) => cambiarStatusYCerrar(pedidoSeleccionado.folio, val)
-            "
-          />
-        </q-card-section>
-
-        <!-- Acciones -->
         <q-card-actions align="right">
           <q-btn flat label="Cerrar" color="primary" v-close-popup />
         </q-card-actions>
@@ -127,197 +173,156 @@
   </q-page>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted, getCurrentInstance } from "vue";
 import { api } from "src/boot/axios";
 
-export default {
-  name: "VentasAdmin",
-  setup() {
-    const ventas = ref([]);
-    const { proxy } = getCurrentInstance();
+const { proxy } = getCurrentInstance();
 
-    const pedidoSeleccionado = ref(null);
-    const dialogoDetalle = ref(false);
+const ventas = ref([]);
+const loading = ref(false);
+const estadoFiltro = ref("ACTIVOS");
+const busqueda = ref("");
+const pedidoSeleccionado = ref(null);
+const dialogoDetalle = ref(false);
 
-    const estatusOptions = [
-      { label: "Esperando pago", value: 0 },
-      { label: "Pago confirmado", value: 1 },
-      { label: "Preparando", value: 2 },
-      { label: "Listo para recoger", value: 3 },
-      { label: "Entregado", value: 4 },
-      { label: "Cancelado", value: 5 },
-    ];
-
-    const filtroOptions = [
-      { label: "Sólo pagos confirmados y preparando", value: "activos" },
-      { label: "Todos los pedidos", value: "todos" },
-      { label: "Esperando pago", value: 0 },
-      { label: "Listo para recoger", value: 3 },
-      { label: "Entregado", value: 4 },
-      { label: "Cancelados", value: 5 },
-    ];
-    const filtroEstatus = ref("activos");
-
-    const getColor = (status) => {
-      switch (status) {
-        case 0:
-          return "grey";
-        case 1:
-          return "green";
-        case 2:
-          return "orange";
-        case 3:
-          return "blue";
-        case 4:
-          return "purple";
-        case 5:
-          return "negative";
-        default:
-          return "grey";
-      }
-    };
-
-    const getHeaderClass = (status) => {
-      switch (status) {
-        case 0:
-          return "bg-grey-7";
-        case 1:
-          return "bg-green-6";
-        case 2:
-          return "bg-orange-6";
-        case 3:
-          return "bg-blue-6";
-        case 4:
-          return "bg-purple-6";
-        case 5:
-          return "bg-red-7";
-        default:
-          return "bg-grey-6";
-      }
-    };
-
-    const getLabel = (status) => {
-      const option = estatusOptions.find((o) => o.value === status);
-      return option ? option.label : "";
-    };
-
-    const formatFecha = (fecha) => {
-      const d = new Date(fecha);
-      return (
-        d.toLocaleDateString("es-MX", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        }) +
-        " " +
-        d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })
-      );
-    };
-
-    const getVentas = async () => {
-      try {
-        const res = await api.get("/ventas");
-        ventas.value = res.data.map((venta) => ({
-          ...venta,
-          detalles: venta.detalles || [],
-          status: Number(venta.status),
-          fecha: new Date(venta.fecha || Date.now()),
-        }));
-      } catch (error) {
-        console.error("Error al obtener ventas:", error);
-      }
-    };
-
-    const ventasFiltradas = computed(() => {
-      let lista = [...ventas.value];
-      const hoy = new Date();
-      const inicioHoy = new Date(
-        hoy.getFullYear(),
-        hoy.getMonth(),
-        hoy.getDate()
-      );
-      const finHoy = new Date(inicioHoy);
-      finHoy.setDate(finHoy.getDate() + 1);
-
-      if (filtroEstatus.value === "activos") {
-        lista = lista.filter(
-          (v) =>
-            [1, 2].includes(v.status) &&
-            v.fecha >= inicioHoy &&
-            v.fecha < finHoy
-        );
-      } else if (filtroEstatus.value !== "todos") {
-        lista = lista.filter((v) => v.status === filtroEstatus.value);
-      }
-
-      const prioridadStatus = { 1: 1, 2: 2, 3: 3, 4: 4, 0: 5, 5: 6 };
-
-      return lista.sort((a, b) => {
-        const diff = prioridadStatus[a.status] - prioridadStatus[b.status];
-        if (diff !== 0) return diff;
-        return new Date(a.fecha) - new Date(b.fecha);
-      });
-    });
-
-    const actualizarStatus = async (folio, nuevoStatus) => {
-      try {
-        await api.put(`/ventas/folio/${folio}/status`, { status: nuevoStatus });
-        const index = ventas.value.findIndex((v) => v.folio === folio);
-        if (index !== -1) ventas.value[index].status = nuevoStatus;
-      } catch (error) {
-        console.error("Error al actualizar status:", error);
-      }
-    };
-
-    const cambiarStatusYCerrar = async (folio, nuevoStatus) => {
-      await actualizarStatus(folio, nuevoStatus);
-      dialogoDetalle.value = false; // 🔥 se cierra solo
-    };
-
-    const abrirDetalle = (pedido) => {
-      pedidoSeleccionado.value = pedido;
-      dialogoDetalle.value = true;
-    };
-
-    onMounted(() => {
-      getVentas();
-      setInterval(getVentas, 5000);
-    });
-
-    return {
-      ventas,
-      ventasFiltradas,
-      filtroEstatus,
-      filtroOptions,
-      getColor,
-      getLabel,
-      getHeaderClass,
-      formatFecha,
-      pedidoSeleccionado,
-      dialogoDetalle,
-      abrirDetalle,
-      estatusOptions,
-      actualizarStatus,
-      cambiarStatusYCerrar,
-    };
-  },
+/* 🔥 MAPA DE FILTROS */
+const filtrosEstado = {
+  TODOS: null,
+  ACTIVOS: new Set([1, 2, 3]),
+  PREPARANDO: new Set([2]),
+  LISTO: new Set([3]),
+  ENTREGADO: new Set([4]),
+  CANCELADO: new Set([5]),
 };
+
+const pedidosFiltrados = computed(() => {
+  const filtro = filtrosEstado[estadoFiltro.value];
+  const texto = busqueda.value.toLowerCase();
+
+  const resultado = [];
+
+  for (const p of ventas.value) {
+    if (filtro && !filtro.has(p.status)) continue;
+
+    if (
+      texto &&
+      !String(p.folio).includes(texto) &&
+      !p.detalles.some((d) => d.nombreProducto.toLowerCase().includes(texto))
+    )
+      continue;
+
+    resultado.push(p);
+  }
+
+  return resultado;
+});
+
+const kpis = computed(() => [
+  {
+    label: "Total",
+    value: ventas.value.length,
+    icon: "receipt",
+    color: "primary",
+  },
+  {
+    label: "Preparando",
+    value: ventas.value.filter((v) => v.status === 2).length,
+    icon: "local_fire_department",
+    color: "warning",
+  },
+  {
+    label: "Listos",
+    value: ventas.value.filter((v) => v.status === 3).length,
+    icon: "done",
+    color: "accent",
+  },
+  {
+    label: "Entregados",
+    value: ventas.value.filter((v) => v.status === 4).length,
+    icon: "check_circle",
+    color: "positive",
+  },
+  {
+    label: "Cancelados",
+    value: ventas.value.filter((v) => v.status === 5).length,
+    icon: "cancel",
+    color: "negative",
+  },
+]);
+
+function limpiarFiltros() {
+  estadoFiltro.value = "ACTIVOS";
+  busqueda.value = "";
+}
+
+function abrirDetalle(p) {
+  pedidoSeleccionado.value = p;
+  dialogoDetalle.value = true;
+}
+
+function getColor(s) {
+  return ["grey", "secondary", "warning", "accent", "positive", "negative"][s];
+}
+
+function getHeaderClass(s) {
+  return [
+    "bg-grey-6",
+    "bg-secondary",
+    "bg-warning",
+    "bg-accent",
+    "bg-positive",
+    "bg-negative",
+  ][s];
+}
+
+function getLabel(s) {
+  return [
+    "Esperando pago",
+    "Pago confirmado",
+    "Preparando",
+    "Listo",
+    "Entregado",
+    "Cancelado",
+  ][s];
+}
+
+function formatFecha(f) {
+  return new Date(f).toLocaleString("es-MX");
+}
+
+async function getVentas() {
+  loading.value = true;
+  try {
+    const res = await api.get("/ventas");
+    ventas.value = res.data;
+  } catch {
+    proxy.$q.notify({ type: "negative", message: "Error al cargar pedidos" });
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function cambiarStatus(pedido, status) {
+  await api.put(`/ventas/folio/${pedido.folio}/status`, { status });
+  pedido.status = status;
+  proxy.$q.notify({ type: "positive", message: "Pedido actualizado" });
+}
+
+onMounted(() => {
+  getVentas();
+  setInterval(getVentas, 5000);
+});
 </script>
 
 <style scoped>
 .cartelera-card {
-  border-radius: 12px;
-  transition: transform 0.2s;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(2, 119, 189, 0.15);
 }
-.cartelera-card:hover {
-  transform: scale(1.03);
-}
-
 .detalle-pedido-card {
   width: 90vw;
   max-width: 420px;
   border-radius: 16px;
-  overflow: hidden;
 }
 </style>
