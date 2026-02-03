@@ -3,18 +3,31 @@ export default [
     path: "/",
     component: () => import("layouts/MainLayout.vue"),
     children: [
-      { path: "", component: () => import("pages/MenuComida.vue") },
+      {
+        path: "",
+        component: () => import("pages/MenuComida.vue"),
+        meta: { publica: true },
+      },
+      {
+        path: "status",
+        component: () => import("pages/Estatuspedido.vue"),
+        meta: { publica: true },
+      },
+      {
+        path: "ticket",
+        component: () => import("pages/Ticket.vue"),
+        meta: { publica: true },
+      },
+      {
+        path: "pagos",
+        component: () => import("pages/PagosComandasLayout.vue"),
+        meta: { publica: true },
+      },
+
       {
         path: "rol",
         component: () => import("pages/CrearRol.vue"),
         meta: { requierePermiso: "/rol" },
-      },
-      { path: "status", component: () => import("pages/Estatuspedido.vue") },
-      { path: "ticket", component: () => import("pages/Ticket.vue") },
-
-      {
-        path: "pagos",
-        component: () => import("pages/PagosComandasLayout.vue"),
       },
       {
         path: "scan",
@@ -63,11 +76,13 @@ export default [
       },
     ],
   },
+
   {
     path: "/login",
     component: () => import("layouts/AuthLayout.vue"),
     children: [{ path: "", component: () => import("pages/LoginPage.vue") }],
   },
+
   {
     path: "/:catchAll(.*)*",
     component: () => import("pages/ErrorNotFound.vue"),

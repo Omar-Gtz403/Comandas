@@ -18,7 +18,7 @@ export default configure(function (ctx) {
   return {
     supportTS: false,
 
-    boot: ["axios"],
+    boot: ["axios", "resize-observer"],
 
     css: ["app.scss"],
 

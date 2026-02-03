@@ -283,9 +283,33 @@ const confirmarCancelar = async () => {
   clearInterval(timer);
   cargando.value = true;
   dialogCancelar.value = false;
-  await api.put(`ventas/folio/${pedido.value.folio}/status`, { status: 5 });
-  pedido.value.status = 5;
-  cargando.value = false;
+
+  try {
+    // ❌ Si ya está en preparación, no se puede cancelar
+    if (pedido.value.status >= 2) {
+      $q.notify({
+        type: "negative",
+        message: "El pedido ya está en preparación y no se puede cancelar",
+      });
+      return;
+    }
+
+    // 💰 Si ya estaba pagado → reembolso
+    if (pedido.value.status === 1) {
+      await api.post("/paypal/refund", {
+        folio: pedido.value.folio,
+      });
+    } else {
+      // ⏳ Solo cancelar
+      await api.put(`ventas/folio/${pedido.value.folio}/status`, { status: 5 });
+    }
+
+    pedido.value.status = 5;
+  } catch (e) {
+    console.error(e);
+  } finally {
+    cargando.value = false;
+  }
 };
 
 /* AUTO REFRESH */

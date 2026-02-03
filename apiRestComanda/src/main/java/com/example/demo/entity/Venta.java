@@ -17,7 +17,7 @@ import javax.persistence.Table;
 
 
 @Entity
-@Table(name = "ventas")
+@Table(name = "tbl_ventas")
 public class Venta {
 
     @Id
@@ -32,7 +32,10 @@ public class Venta {
     private LocalDateTime fecha;
 
     private Double total;
-
+    @Column(name = "paypal_order_id", unique = true)
+    private String paypalOrderId;
+    @Column(name = "paypal_capture_id", unique = true)
+    private String paypalCaptureId;
 
     private Integer status;
 
@@ -94,7 +97,21 @@ public class Venta {
 	public void setDetalles(List<VentaDetalle> detalles) {
 		this.detalles = detalles;
 	}
-    
+
+	public String getPaypalOrderId() {
+		return paypalOrderId;
+	}
+
+	public void setPaypalOrderId(String paypalOrderId) {
+		this.paypalOrderId = paypalOrderId;
+	}
+	public String getPaypalCaptureId() {
+	    return paypalCaptureId;
+	}
+
+	public void setPaypalCaptureId(String paypalCaptureId) {
+	    this.paypalCaptureId = paypalCaptureId;
+	}
     
     
 }

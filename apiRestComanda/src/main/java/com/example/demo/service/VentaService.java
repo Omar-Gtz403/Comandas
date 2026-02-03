@@ -68,6 +68,10 @@ public class VentaService {
 	public List<Venta> listarVentas() {
 		return ventaRepository.findAll();
 	}
+	@Transactional
+	public Venta guardar(Venta venta) {
+	    return ventaRepository.save(venta);
+	}
 
 	public List<VentaDTO> listarVentasDTO() {
 		return ventaRepository.findAll().stream().map(VentaDTO::new).collect(Collectors.toList());
@@ -84,6 +88,19 @@ public class VentaService {
 	    venta.setStatus(nuevoStatus);
 	    return ventaRepository.save(venta);
 	}
+	public Venta obtenerPorOrderId(String orderId) {
+	    return ventaRepository.findByPaypalOrderId(orderId)
+	        .orElseThrow(() -> new RuntimeException(
+	            "Venta no encontrada con orderId: " + orderId
+	        ));
+	}
 
+	@Transactional
+	public void marcarPagadaSiNoEsta(Venta venta) {
+	    if (venta.getStatus() == null || venta.getStatus() != 1) {
+	        venta.setStatus(1); // PAGADO
+	        ventaRepository.save(venta);
+	    }
+	}
 
 }

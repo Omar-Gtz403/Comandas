@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.demo.dto.GuardarOrderDTO;
 import com.example.demo.dto.PagoRequest;
 import com.example.demo.entity.Venta;
 import com.example.demo.service.PayPalHttpService;
@@ -85,8 +86,13 @@ public class PayPalController {
             }
 
 
+         // 7️⃣ Guardar CAPTURE ID
+            String captureId = (String) capture.get("id");
+            venta.setPaypalCaptureId(captureId);
+
             // 8️⃣ Marcar venta como pagada
-            ventaService.marcarComoPagada(venta.getId());
+            venta.setStatus(1);
+            ventaService.guardar(venta);
 
             return ResponseEntity.ok("Pago confirmado correctamente");
 
@@ -97,4 +103,43 @@ public class PayPalController {
                     .body("Error al validar el pago");
         }
     }
+    @PostMapping("/guardar-order")
+    public ResponseEntity<?> guardarOrder(@RequestBody GuardarOrderDTO dto) {
+
+        Venta venta = ventaService.obtenerVentaPorFolio(dto.getFolio());
+
+        if (venta.getStatus() != 0) {
+            return ResponseEntity.badRequest().body("La venta ya fue pagada");
+        }
+
+        venta.setPaypalOrderId(dto.getOrderId());
+        ventaService.guardar(venta);
+
+        return ResponseEntity.ok().build();
+    }
+    @PostMapping("/refund")
+    public ResponseEntity<?> refund(@RequestBody Map<String, String> body) {
+
+        String folio = body.get("folio");
+
+        Venta venta = ventaService.obtenerVentaPorFolio(folio);
+
+        if (venta.getStatus() != 1) {
+            return ResponseEntity.badRequest()
+                    .body("La venta no está pagada");
+        }
+
+        payPalHttpService.reembolsarPago(
+                venta.getPaypalCaptureId(),
+                venta.getTotal()
+        );
+
+        venta.setStatus(5); // CANCELADO
+        ventaService.guardar(venta);
+
+        return ResponseEntity.ok("Reembolso realizado");
+    }
+
+    
+
 }

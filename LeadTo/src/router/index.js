@@ -22,37 +22,26 @@ export default route(function () {
     ),
   });
 
-  // 🔥 AGREGAMOS EL BLOQUEO AQUÍ
   Router.beforeEach((to, from, next) => {
     const usuario = JSON.parse(localStorage.getItem("usuario"));
 
-    // ✅ Rutas que cualquier persona puede ver
-    const rutasPublicas = ["/", "/status", "/ticket", "/pagos"];
+    // 1️⃣ Ruta pública
+    if (to.meta?.publica) return next();
 
-    // Si la página está en rutas públicas → permitir acceso
-    if (rutasPublicas.includes(to.path)) {
+    // 2️⃣ Ruta sin permiso
+    if (!to.meta?.requierePermiso) return next();
+
+    // 3️⃣ Sin sesión
+    if (!usuario) return next("/login");
+
+    // 4️⃣ Validar permiso
+    const permisos = usuario.rol?.permisos?.map((p) => p.ruta) || [];
+
+    if (permisos.includes(to.meta.requierePermiso)) {
       return next();
     }
 
-    // Si la ruta NO requiere permisos → permitir
-    if (!to.meta?.requierePermiso) {
-      return next();
-    }
-
-    // Si no hay sesión → mandar a login
-    if (!usuario) {
-      return next("/login");
-    }
-
-    // Obtener las rutas permitidas según el rol
-    const permisosRol = usuario.rol?.permisos?.map((p) => p.ruta) || [];
-
-    // Si el usuario tiene el permiso → permitir
-    if (permisosRol.includes(to.meta.requierePermiso)) {
-      return next();
-    }
-
-    // 🚫 Si no tiene permiso → regresar al menú principal
+    // 5️⃣ Sin permiso
     return next("/");
   });
 

@@ -116,61 +116,94 @@ export default {
     const renderPayPal = async () => {
       await nextTick();
 
-      if (!window.paypal) return;
+      // 📦 Contenedor
+      const container = document.getElementById("paypal-button-container");
+      if (!container) return;
 
-      window.paypal
-        .Buttons({
-          style: {
-            layout: "vertical",
-            color: "blue",
-            shape: "rect",
-            label: "paypal",
-          },
+      // 🛑 Evita render doble (causa principal del ResizeObserver error)
+      if (container.hasChildNodes()) return;
 
-          /* 🔐 CREAR ORDEN */
-          createOrder: (data, actions) =>
-            actions.order.create({
-              intent: "CAPTURE",
-              application_context: {
-                shipping_preference: "NO_SHIPPING",
-                locale: "es-MX",
-              },
-              purchase_units: [
-                {
-                  amount: {
-                    currency_code: "MXN",
-                    value: total.value.toFixed(2),
-                  },
+      // 🛑 Validaciones básicas
+      if (!window.paypal) {
+        console.warn("PayPal SDK no cargado");
+        return;
+      }
+
+      if (!folio.value || !total.value || total.value <= 0) {
+        console.warn("Folio o total inválido", folio.value, total.value);
+        return;
+      }
+
+      try {
+        window.paypal
+          .Buttons({
+            style: {
+              layout: "vertical",
+              color: "blue",
+              shape: "rect",
+              label: "paypal",
+            },
+
+            /* 🔐 CREAR ORDEN */
+            createOrder: async (data, actions) => {
+              const orderId = await actions.order.create({
+                intent: "CAPTURE",
+                application_context: {
+                  shipping_preference: "NO_SHIPPING",
+                  locale: "es-MX",
                 },
-              ],
-            }),
+                purchase_units: [
+                  {
+                    amount: {
+                      currency_code: "MXN",
+                      value: total.value.toFixed(2),
+                    },
+                  },
+                ],
+              });
 
-          /* ✅ APROBADO */
-          onApprove: async (data, actions) => {
-            await actions.order.capture();
+              // 💾 Guardar orderId + folio en backend
+              await api.post("/paypal/guardar-order", {
+                folio: folio.value,
+                orderId,
+              });
 
-            await api.post("/paypal/confirmar-pago", {
-              folio: folio.value,
-              orderId: data.orderID,
-            });
+              return orderId;
+            },
 
-            $q.notify({
-              type: "positive",
-              message: "Pago con PayPal confirmado ✅",
-            });
+            /* ✅ APROBADO */
+            onApprove: async (data, actions) => {
+              await actions.order.capture();
 
-            router.push({ path: "/ticket", query: { folio: folio.value } });
-          },
+              await api.post("/paypal/confirmar-pago", {
+                folio: folio.value,
+                orderId: data.orderID,
+              });
 
-          /* ❌ ERROR */
-          onError: () => {
-            $q.notify({
-              type: "negative",
-              message: "Error en el pago con PayPal ❌",
-            });
-          },
-        })
-        .render("#paypal-button-container");
+              $q.notify({
+                type: "positive",
+                message: "Pago con PayPal confirmado ✅",
+              });
+
+              router.push({
+                path: "/ticket",
+                query: { folio: folio.value },
+              });
+            },
+
+            /* ❌ ERROR */
+            onError: (err) => {
+              console.error("PayPal error:", err);
+              $q.notify({
+                type: "negative",
+                message: "Error en el pago con PayPal ❌",
+              });
+            },
+          })
+          .render("#paypal-button-container");
+      } catch (err) {
+        console.error("Error renderizando PayPal:", err);
+      }
     };
 
     /* ===============================
