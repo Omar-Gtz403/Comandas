@@ -184,16 +184,16 @@ const pedidoActivo = computed(() => {
 
 const titulos = {
   "/dashboard": "Dashboard",
-  "/registro": "Registro",
-  "/pedidos": "Pedidos",
+  "/registro": "Registrar Productos",
+  "/pedidos": "Tablero de Pedidos",
   "/inventario": "Inventario",
   "/pagos": "Pagos",
   "/status": "Mi Pedido",
-  "/rol": "Roles",
+  "/rol": "Crear Roles",
   "/scan": "Escanear QR",
-  "/categorias": "Categorías",
-  "/productos": "Productos",
-  "/registrousuario": "Usuarios",
+  "/categorias": "Administrador de Categorías",
+  "/productos": "Administrador de Productos",
+  "/registrousuario": "Registrar Usuarios",
   "/": "Menú",
   "/caja": "Caja",
 };
@@ -234,6 +234,7 @@ const cerrarSesion = () => {
 };
 </script>
 <style scoped lang="sass">
+
 .layout-root
   background: var(--q-grey-1)
 

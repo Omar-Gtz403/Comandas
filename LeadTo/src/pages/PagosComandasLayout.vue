@@ -1,59 +1,55 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
-    <q-page-container>
-      <q-page class="flex flex-center">
-        <!-- CARD PRINCIPAL -->
-        <q-card
-          v-if="folioValido"
-          class="q-pa-lg shadow-2"
-          style="max-width: 420px; width: 100%"
-        >
-          <q-card-section>
-            <div class="text-h6 text-center q-mb-md">
-              <q-icon name="payment" color="primary" size="28px" />
-              Métodos de pago
-            </div>
+  <q-page class="login-page flex flex-center q-pa-md">
+    <!-- CARD PRINCIPAL -->
+    <q-card
+      v-if="folioValido"
+      class="q-pa-lg shadow-2"
+      style="max-width: 420px; width: 100%"
+    >
+      <q-card-section>
+        <div class="text-h6 text-center q-mb-md">
+          <q-icon name="payment" color="primary" size="28px" />
+          Métodos de pago
+        </div>
 
-            <div class="text-center q-mb-sm">
-              Total:
-              <span class="text-primary text-bold">
-                ${{ total.toFixed(2) }} MXN
-              </span>
-            </div>
+        <div class="text-center q-mb-sm">
+          Total:
+          <span class="text-primary text-bold">
+            ${{ total.toFixed(2) }} MXN
+          </span>
+        </div>
 
-            <div class="text-center q-mb-md">
-              Folio:
-              <span class="text-bold">{{ folio }}</span>
-            </div>
+        <div class="text-center q-mb-md">
+          Folio:
+          <span class="text-bold">{{ folio }}</span>
+        </div>
 
-            <!-- PAYPAL -->
-            <div class="q-mb-md">
-              <div id="paypal-button-container"></div>
-            </div>
+        <!-- PAYPAL -->
+        <div class="q-mb-md">
+          <div id="paypal-button-container"></div>
+        </div>
 
-            <!-- EFECTIVO -->
-            <div v-if="puedePagarEfectivo">
-              <q-separator spaced />
-              <q-btn
-                class="full-width"
-                color="positive"
-                icon="attach_money"
-                label="Marcar como pagado en efectivo"
-                @click="pagarEfectivo"
-              />
-            </div>
-          </q-card-section>
-        </q-card>
+        <!-- EFECTIVO -->
+        <div v-if="puedePagarEfectivo">
+          <q-separator spaced />
+          <q-btn
+            class="full-width"
+            color="positive"
+            icon="attach_money"
+            label="Marcar como pagado en efectivo"
+            @click="pagarEfectivo"
+          />
+        </div>
+      </q-card-section>
+    </q-card>
 
-        <!-- ERROR -->
-        <q-card v-else class="q-pa-lg bg-negative text-white">
-          <q-card-section class="text-center">
-            ⚠️ Folio inválido o ya pagado
-          </q-card-section>
-        </q-card>
-      </q-page>
-    </q-page-container>
-  </q-layout>
+    <!-- ERROR -->
+    <q-card v-else class="q-pa-lg bg-negative text-white">
+      <q-card-section class="text-center">
+        ⚠️ Folio inválido o ya pagado
+      </q-card-section>
+    </q-card>
+  </q-page>
 </template>
 
 <script>
@@ -238,3 +234,11 @@ export default {
   },
 };
 </script>
+<style scoped lang="scss">
+.login-page {
+  min-height: calc(100vh - 120px); // header + footer aprox
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>

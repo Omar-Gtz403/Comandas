@@ -172,11 +172,10 @@ const registrarUsuario = async () => {
 </script>
 <style lang="scss" scoped>
 .login-page {
-  min-height: 100vh;
-  background: var(--q-body-background);
+  min-height: calc(100vh - 120px); // header + footer aprox
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
 }
 
 .card-container {

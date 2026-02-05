@@ -21,11 +21,11 @@
         <q-card-section>
           <!-- HEADER -->
           <div class="text-h6 text-center text-primary q-mb-xs">
-            🍔 Restaurante Ejemplo
+            🐟 Solo Veracruz Es Bello
           </div>
           <div class="text-caption text-center q-mb-sm">
-            Calle Ficticia 123, Ciudad<br />
-            Tel: (55) 1234-5678
+            Av. del Trabajo 13, Tlalnepantla Centro, 54000 Tlalnepantla, Méx<br />
+            Tel: (55) 55650170
           </div>
 
           <q-separator />
@@ -90,7 +90,7 @@
           <q-separator class="q-my-sm" />
 
           <div class="text-center text-caption q-mt-sm">
-            ¡Gracias por tu compra! 🍔
+            ¡Gracias por tu compra! 🐟
           </div>
         </q-card-section>
       </q-card>

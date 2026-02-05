@@ -67,7 +67,8 @@
       </q-form>
 
       <q-card-section class="text-center text-caption text-grey-7 q-pt-md">
-        © {{ new Date().getFullYear() }} LeadTo · Todos los derechos reservados
+        © {{ new Date().getFullYear() }} Solo Veracruz Es Bello · Todos los
+        derechos reservados
       </q-card-section>
     </q-card>
   </q-page>

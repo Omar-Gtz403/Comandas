@@ -272,17 +272,22 @@ const filtrosEstado = {
 
 const pedidosFiltrados = computed(() => {
   const filtro = filtrosEstado[estadoFiltro.value];
-  const texto = busqueda.value.toLowerCase();
+  const texto = busqueda.value.trim().toLowerCase();
 
   return ventas.value.filter((p) => {
     if (filtro && !filtro.has(p.status)) return false;
-    if (
-      texto &&
-      !String(p.folio).includes(texto) &&
-      !p.detalles.some((d) => d.nombreProducto.toLowerCase().includes(texto))
-    )
-      return false;
-    return true;
+
+    if (!texto) return true;
+
+    const folio = String(p.folio).toLowerCase();
+
+    const matchFolio = folio.includes(texto);
+
+    const matchProducto = p.detalles.some((d) =>
+      d.nombreProducto.toLowerCase().includes(texto)
+    );
+
+    return matchFolio || matchProducto;
   });
 });
 
